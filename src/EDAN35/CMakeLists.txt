@@ -11,4 +11,4 @@ target_link_libraries (EDAN35_Project PRIVATE assignment_setup)
 
 install (TARGETS EDAN35_Project DESTINATION bin)
 
-copy_dlls (EDAN35_Assignment2 "${CMAKE_CURRENT_BINARY_DIR}")
+copy_dlls (EDAN35_Project "${CMAKE_CURRENT_BINARY_DIR}")
