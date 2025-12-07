@@ -64,7 +64,7 @@ Project::ProjectWrapper::run()
 	shader_manager.ReloadAllPrograms();
 
 	// Create the TerrainGrid (Which is the 3d Voxel grid representing the terrain)
-	TerrainGrid* grid = new TerrainGrid(8, 8, 8, 1.0f);
+	TerrainGrid* grid = new TerrainGrid(50, 50, 50, 1.0f);
 	grid->regenerate(); // Generate it immediately
 
 	//

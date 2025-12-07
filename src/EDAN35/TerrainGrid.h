@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PerlinNoise.h"
+
 #include <vector>
 #include <glad/glad.h>  
 
@@ -15,6 +17,7 @@ public:
 	void resize(int newX, int newY, int newZ); // Resizes the grid to new dimensions, while keeping as much of the current contents as possible
 	void regenerate(); // Regenerate the grid with new Perlin noise terrain
 	void clear(); // Clears the grid to air, except for the bottom layer which is solid ground
+	bool is_solid(int x, int y, int z); // Checks if a block is solid
 
 	std::pair<GLuint, GLuint> debugPointsVBO(); // Returns the VAO and VBO (in that order) for rendering the grid as points for debugging
 
@@ -31,4 +34,6 @@ private:
 	int x_size, y_size, z_size;
 	float scale;
 	std::vector<uint8_t> grid;
+	PerlinNoise noise;
+	std::vector<std::vector<float>> elevationMap;
 };

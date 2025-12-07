@@ -61,7 +61,7 @@ std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
 				points.push_back((float)x * scale);
 				points.push_back((float)y * scale);
 				points.push_back((float)z * scale);
-				if (get(x, y, z)) {
+				if (is_solid(x, y, z)) {
 					points.push_back(1.0f); // 0x1 colour flag to indicate a terrain voxel
 				}
 				else {
@@ -94,9 +94,21 @@ std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
 }
 
 
+//! This is just creating an elevation map based on the size of the grid
 void TerrainGrid::regenerate() {
-	// TODO generate with Perlin noise
 
+	elevationMap.resize(x_size, std::vector<float>(z_size));
+
+	for (int x = 0; x < x_size; x++) {
+		for (int z = 0; z < z_size; z++) {
+			float n = noise.noise(x * 0.01f, z * 0.01f); //! NOTE: NEED TO SCALE
+			elevationMap[x][z] = (n + 1.0) * 0.5 * y_size;
+			std::cout << elevationMap[x][n] << " ";
+		}
+		std::cout << std::endl;
+	}
+
+	
 
 
 }
@@ -118,4 +130,14 @@ void TerrainGrid::resize(int newX, int newY, int newZ) {
 	z_size = newZ;
 	grid = newGrid;
 }
-// Implement resize()
+
+
+bool TerrainGrid::is_solid(int x, int y, int z) {
+	
+	// Handle boundary cases
+	if (x < 0 || z < 0 || x >= x_size || z >= z_size) return false;
+
+	// check if y is less than value in elevation map
+	return y <= elevationMap[x][z];
+
+}
