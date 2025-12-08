@@ -7,7 +7,8 @@ Config::Config(TerrainGrid* grid) {
 	terrain = grid;
 
 	// Initialize the default values
-	terrain_dimensions = glm::vec3(10, 10, 10);
+	// Get the current values of the terrain
+	terrain_dimensions = grid->get_dimensions();
 	terrain_updated = false;
 	terrain_scale = grid->get_scale();
 
@@ -17,6 +18,11 @@ Config::Config(TerrainGrid* grid) {
 	bd_show_basis = false; // bd_ = basis_debugger_
 	bd_thickness = 1.0f;
 	bd_length = 3.0f;
+
+	// Get the current config values of the perlin noise
+	PerlinNoise noise = grid->getNoise();
+	pn_seed = noise.getSeed(); // pn_ = perlin_noise_
+	pn_scale = noise.getScale();
 }
 
 
@@ -30,11 +36,8 @@ void Config::draw_config() {
 		terrain_updated = terrain_updated || terrain_dimensions_updated; // Save any changes to the terrain for the main loop
 
 		if (terrain_dimensions_updated) {
-			if (terrain_dimensions.x < 1) terrain_dimensions.x = 1;
-			if (terrain_dimensions.y < 1) terrain_dimensions.y = 1;
-			if (terrain_dimensions.z < 1) terrain_dimensions.z = 1;
-
-			terrain->resize(terrain_dimensions.x, terrain_dimensions.y, terrain_dimensions.z);
+			// Minimize the values to 1, and resize the grid
+			terrain->resize(max(terrain_dimensions, glm::ivec3(1)));
 		}
 
 		if (ImGui::SliderFloat("Terrain Scale", &terrain_scale, 0.0f, 10.0f)) {
@@ -48,8 +51,14 @@ void Config::draw_config() {
 			terrain->clear();
 		}
 
+		// Add UI to change the seed and scale
+		ImGui::InputInt("Perlin Noise Seed", &pn_seed);
+		ImGui::SliderFloat("Perlin Noise Scale", &pn_scale, 0.01f, 1.0f);
+
+		// If the button is pressed, generate new perlin terrain with the given seed and scale
 		if (ImGui::Button("Generate Perlin Terrain")) {
-			LogInfo("Generated new Perlin terrain");
+			terrain->regenerate(PerlinNoise(pn_seed, pn_scale));
+			terrain_updated = true;
 		}
 
 		bool const DebuggerOpened = ImGui::CollapsingHeader("Debugger");

@@ -22,6 +22,9 @@ public:
 	bool bd_show_basis; // bd_ = basis_debugger_
 	float bd_thickness;
 	float bd_length;
+
+	int pn_seed; // pn_ = perlin_noise_
+	float pn_scale;
 private:
 	TerrainGrid* terrain;
 };

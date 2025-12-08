@@ -64,8 +64,7 @@ Project::ProjectWrapper::run()
 	shader_manager.ReloadAllPrograms();
 
 	// Create the TerrainGrid (Which is the 3d Voxel grid representing the terrain)
-	TerrainGrid* grid = new TerrainGrid(50, 50, 50, 1.0f);
-	grid->regenerate(); // Generate it immediately
+	TerrainGrid* grid = new TerrainGrid(glm::ivec3(10), 1.0f);
 
 	//
 	// Create the Debug Points VBO/VAO

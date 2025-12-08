@@ -2,16 +2,16 @@
 
 #include <random>
 #include <algorithm>
+#include "core/Bonobo.h"
 
 static const int grad2[8][2] = {
     {1,0}, {-1,0}, {0,1}, {0,-1},
     {1,1}, {-1,1}, {1,-1}, {-1,-1}
 };
 
-PerlinNoise::PerlinNoise() {
-
-    std::random_device rd;
-    unsigned int seed = rd();
+PerlinNoise::PerlinNoise(int seed, float scale):
+	scale(scale), seed(seed)
+{
 
     // permutation table
     std::vector<int> permutation(256);
@@ -26,6 +26,14 @@ PerlinNoise::PerlinNoise() {
         p[i + 256] = permutation[i];
     }
 };
+
+int PerlinNoise::getSeed() const {
+	return seed;
+}
+
+float PerlinNoise::getScale() const {
+	return scale;
+}
 
 float PerlinNoise::lerp(float a, float b, float t) {
 
@@ -54,17 +62,19 @@ float PerlinNoise::fade(float t) {
 
 };
 
-float PerlinNoise::noise(float x, float z) {
+float PerlinNoise::sampleNoise(int x, int z) {
+	float scaled_x = x * scale;
+	float scaled_z = z * scale;
 
     // determine coordinates of unit cube (and wrap for indexing)
-    int x0 = int(floor(x)) & 255;
+    int x0 = int(floor(scaled_x)) & 255;
     int x1 = (x0 + 1) & 255;
-    int z0 = int(floor(z)) & 255;
+    int z0 = int(floor(scaled_z)) & 255;
     int z1 = (z0 + 1) & 255;
 
     // determine relative position
-    float xf = x - floor(x);
-    float zf = z - floor(z);
+    float xf = scaled_x - floor(scaled_x);
+    float zf = scaled_z - floor(scaled_z);
 
     // calculate fade for linear interpolation
     float u = fade(xf);
@@ -86,6 +96,7 @@ float PerlinNoise::noise(float x, float z) {
     float ix1 = lerp(grad(h00, xf0, zf0), grad(h10, xf1, zf0), u);
     float ix2 = lerp(grad(h01, xf0, zf1), grad(h11, xf1, zf1), u);
 
-    return lerp(ix1, ix2, v);
 
+	float sample = lerp(ix1, ix2, v);
+    return (sample + 1) / 2; // Convert the sample to 0-1
 };
