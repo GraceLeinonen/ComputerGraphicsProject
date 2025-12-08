@@ -62,10 +62,10 @@ std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
 				points.push_back((float)y * scale);
 				points.push_back((float)z * scale);
 				if (is_solid(x, y, z)) {
-					points.push_back(1.0f); // 0x1 colour flag to indicate a terrain voxel
+					// points.push_back(1.0f); // 0x1 colour flag to indicate a terrain voxel
 				}
 				else {
-					points.push_back(0.0f); // 0x0 colour flag to indicate an empty voxel
+					// points.push_back(0.0f); // 0x0 colour flag to indicate an empty voxel
 				}
 			}
 
@@ -81,8 +81,8 @@ std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
 	// Add the data to the buffers
 	glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(float), points.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0); // the world position data (at pos=0) needs 3 floats of data
-	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float))); // the colour flag data (at pos=1) needs 1 float of data
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // the world position data (at pos=0) needs 3 floats of data
+	//glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float))); // the colour flag data (at pos=1) needs 1 float of data
 	glEnableVertexAttribArray(0); // Enable position at pos=0
 	glEnableVertexAttribArray(1); // Enable colour flag at pos=1
 

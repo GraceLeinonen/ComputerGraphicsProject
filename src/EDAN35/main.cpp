@@ -54,8 +54,8 @@ Project::ProjectWrapper::run()
 	GLuint debug_point_shader = 0u;
 	shader_manager.CreateAndRegisterProgram(
 		"triangle_shader",
-		{ { ShaderType::vertex,   "common/DebugPointShader.vert" },
-		  { ShaderType::fragment, "common/DebugPointShader.frag" } },
+		{ { ShaderType::vertex,   "common/triangle.vert" },
+		  { ShaderType::fragment, "common/triangle.frag" } },
 		debug_point_shader
 	);
 
