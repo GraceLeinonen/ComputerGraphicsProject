@@ -61,13 +61,18 @@ void TerrainGrid::clear() {
 }
 
 std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
+	return debugPointsVBOWithDimensions(glm::ivec3(0), dim);
+}
+
+
+std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBOWithDimensions(glm::ivec3 minIndexes, glm::ivec3 maxIndexes) {
 	LogInfo("Creating a new VAO/VBO for the debug points of the terrain grid.");
 
 	// For each of the points, add them to a float array and add a colour flag
 	std::vector<float> points;
-	for (int x = 0; x < dim.x; x++)
-		for (int y = 0; y < dim.y; y++)
-			for (int z = 0; z < dim.z; z++) {
+	for (int x = minIndexes.x; x < glm::min(dim.x, maxIndexes.x); x++)
+		for (int y = minIndexes.y; y < glm::min(dim.y, maxIndexes.y); y++)
+			for (int z = minIndexes.z; z < glm::min(dim.z, maxIndexes.z); z++) {
 				points.push_back((float)x * scale);
 				points.push_back((float)y * scale);
 				points.push_back((float)z * scale);

@@ -20,6 +20,8 @@ public:
 	void clear(); // Clears the grid to air, except for the bottom layer which is solid ground
 
 	std::pair<GLuint, GLuint> debugPointsVBO(); // Returns the VAO and VBO (in that order) for rendering the grid as points for debugging
+	// Returns the VAO and VBO (in that order) for rendering the grid as points (within a specific subsection of the grid) for debugging
+	std::pair<GLuint, GLuint> debugPointsVBOWithDimensions(glm::ivec3 minIndexes, glm::ivec3 maxIndexes);
 
 	int get_x_size() const;
 	int get_y_size() const;

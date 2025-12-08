@@ -142,7 +142,10 @@ Project::ProjectWrapper::run()
 
 			glBindVertexArray(debug_points_vao);
 			glPointSize(config->pd_point_size);
-			glDrawArrays(GL_POINTS, 0, grid->get_total_size());
+
+			auto renderRange = config->pointsDebuggerRange(); // the range of indexes to render
+			glm::vec3 renderSize = renderRange.second - renderRange.first; // Dimensions of what to render
+			glDrawArrays(GL_POINTS, 0, renderSize.x * renderSize.y * renderSize.z);
 			glBindVertexArray(0);
 			glUseProgram(0);
 		}
@@ -153,8 +156,8 @@ Project::ProjectWrapper::run()
 		
 		// If the terrain is changed (by the user in the config window), update the grid and recreate the VAO/VBOs
 		if (config->terrain_updated) {
-			// Regenerate the debug points VBO/VAO
-			std::pair<GLuint, GLuint> debug_points = grid->debugPointsVBO();
+			auto dimensions = config->pointsDebuggerRange();
+			std::pair<GLuint, GLuint> debug_points = grid->debugPointsVBOWithDimensions(dimensions.first, dimensions.second);
 			debug_points_vao = debug_points.first;
 			debug_points_vbo = debug_points.second;
 		}
