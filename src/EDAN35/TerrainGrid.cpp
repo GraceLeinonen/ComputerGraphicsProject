@@ -52,10 +52,9 @@ void TerrainGrid::clear() {
 	for (int i = 0; i < grid.size(); i++) {
 		grid[i] = false;
 	}
-
 	for (int x = 0; x < dim.x; x++) {
 		for (int z = 0; z < dim.z; z++) {
-			grid[x + z * dim.y * dim.z] = true;
+			grid[x + z * dim.x * dim.y] = true;
 		}
 	}
 }

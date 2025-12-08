@@ -56,7 +56,9 @@ void Config::draw_config() {
 
 		// Add UI to change the seed and scale
 		ImGui::InputInt("Perlin Noise Seed", &pn_seed);
-		ImGui::SliderFloat("Perlin Noise Scale", &pn_scale, 0.01f, 1.0f);
+		if (ImGui::SliderFloat("Perlin Noise Scale", &pn_scale, 0.01f, 1.0f)) {
+			terrain_updated = true;
+		}
 
 		// If the button is pressed, generate new perlin terrain with the given seed and scale
 		if (ImGui::Button("Generate Perlin Terrain")) {
