@@ -101,7 +101,7 @@ void TerrainGrid::regenerate() {
 
 	for (int x = 0; x < x_size; x++) {
 		for (int z = 0; z < z_size; z++) {
-			float n = noise.noise(x * 0.01f, z * 0.01f); //! NOTE: NEED TO SCALE
+			float n = noise.noise(x * 0.1f, z * 0.1f); //! NOTE: NEED TO SCALE
 			elevationMap[x][z] = (n + 1.0) * 0.5 * y_size;
 			std::cout << elevationMap[x][n] << " ";
 		}
