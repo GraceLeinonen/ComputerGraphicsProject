@@ -138,6 +138,8 @@ void TerrainGrid::resize(glm::ivec3 newDimensions) {
 	grid = std::vector<uint8_t>(dim.x * dim.y * dim.z, false); // Actually create a grid the right size
 	regenerate(noise); // Use the regenerate to generate an entire grid based on the current noise pattern
 
+	// If Y changed, we can't keep the edited map since we would have to stretch/squash it along the y-axis
+	if (oldDim.y != dim.y) return;
 	// Add as much of the original grid back as possible
 	for (int x = 0; x < glm::min(dim.x, oldDim.x); x++) {
 		for (int y = 0; y < glm::min(dim.y, oldDim.y); y++) {
