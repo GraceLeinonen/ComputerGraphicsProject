@@ -109,7 +109,7 @@ std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBOWithDimensions(glm::ivec3 m
 
 
 void TerrainGrid::regenerate(PerlinNoise newNoise) {
-	LogInfo("Regenerating the terrain  with perlin noise");
+	LogInfo("Regenerating the terrain with perlin noise");
 	noise = newNoise; // Save the noise function in case we need to generate more later (if the grid is resized)
 
 	for (int x = 0; x < dim.x; x++) {

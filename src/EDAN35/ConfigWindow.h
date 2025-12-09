@@ -2,6 +2,7 @@
 
 #include <glm/vec3.hpp>
 #include "TerrainGrid.h"
+#include "TerrainMesh.h"
 
 
 // The config is an object representation of the state of the Scene Controls window
@@ -33,4 +34,5 @@ public:
 	float pn_scale;
 private:
 	TerrainGrid* terrain;
+	//!TerrainMesh* terrainMesh;
 };

@@ -23,7 +23,7 @@ public:
 	// Returns the VAO and VBO (in that order) for rendering the grid as points (within a specific subsection of the grid) for debugging
 	std::pair<GLuint, GLuint> debugPointsVBOWithDimensions(glm::ivec3 minIndexes, glm::ivec3 maxIndexes);
 
-	std::vector<std::vector<std::vector<float>>> density;
+	std::vector<std::vector<std::vector<float>>> density; //! move to private!
 
 	int get_x_size() const;
 	int get_y_size() const;

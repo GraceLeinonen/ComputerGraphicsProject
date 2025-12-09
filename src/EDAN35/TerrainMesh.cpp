@@ -1,4 +1,4 @@
-#include "MarchingCubes.h"
+#include "TerrainMesh.h"
 
 struct Cube {
 
@@ -8,7 +8,13 @@ struct Cube {
 
 };
 
-int MarchingCubes::edgeTable[256] = {
+TerrainMesh::TerrainMesh(TerrainGrid& grid, float isoLevel) {
+    this->grid = &grid;
+    this->isoLevel = isoLevel;
+    this->vertexCount = 0;
+};
+
+int TerrainMesh::edgeTable[256] = {
 
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
@@ -44,7 +50,7 @@ int MarchingCubes::edgeTable[256] = {
 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   
 };
 
-int MarchingCubes::triTable[256][16] = {
+int TerrainMesh::triTable[256][16] = {
 
 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -305,86 +311,7 @@ int MarchingCubes::triTable[256][16] = {
 
 };
 
-void MarchingCubes::processCube(Cube& cube, float isoLevel, std::vector<float>& vertexBuffer) {
-
-    // cubeIndex:
-    // represents the configuration of which corners of a cube are inside or outside the surface
-    // i.e. tells us which triangles to generate for that cube
-    int cubeIndex = 0; // binary: 00000000
-
-    if (cube.values[0] < isoLevel) cubeIndex |= 1; // binary: 00000001 i.e. sets bit 1
-    if (cube.values[1] < isoLevel) cubeIndex |= 2; // binary: 00000010 i.e. sets bit 2
-    if (cube.values[2] < isoLevel) cubeIndex |= 4; // binary: 00000100 i.e. sets bit 3
-    if (cube.values[3] < isoLevel) cubeIndex |= 8; // binary: 00001000 i.e. sets bit 4
-    if (cube.values[4] < isoLevel) cubeIndex |= 16; // binary: 00010000 i.e. sets bit 5
-    if (cube.values[5] < isoLevel) cubeIndex |= 32; // binary: 00100000 i.e. sets bit 6
-    if (cube.values[6] < isoLevel) cubeIndex |= 64; // binary: 01000000 i.e. sets bit 7
-    if (cube.values[7] < isoLevel) cubeIndex |= 128; // binary: 10000000 i.e. sets bit 8
-
-    // Case 1: Cube is entirely in/out of the surface
-    if (edgeTable[cubeIndex] == 0) {
-        return;
-    }
-
-    // Case 2: Cube intersects surface some where
-    glm::vec3 intersections[12]; // List of intersection points along 12 edges
-
-    // Check every edge
-    if (edgeTable[cubeIndex] & 1) // if true, isosurface intersects edge 0
-    cube.intersections[0] = vertexInterpolation(cube.corners[0], cube.corners[1], cube.values[0], cube.values[1], isoLevel); // perform interpolation to find where exactly it interesects
-
-    if (edgeTable[cubeIndex] & 2) // if true, isosurface intersects edge 1
-    cube.intersections[1] = vertexInterpolation(cube.corners[1], cube.corners[2], cube.values[1], cube.values[2], isoLevel); // perform interpolation to find where exactly it interesects
-
-    if (edgeTable[cubeIndex] & 4) // ...
-    cube.intersections[2] = vertexInterpolation(cube.corners[2], cube.corners[3], cube.values[2], cube.values[3], isoLevel);
-
-    if (edgeTable[cubeIndex] & 8) 
-    cube.intersections[3] = vertexInterpolation(cube.corners[3], cube.corners[0], cube.values[3], cube.values[0], isoLevel);
-
-    if (edgeTable[cubeIndex] & 16) 
-    cube.intersections[4] = vertexInterpolation(cube.corners[4], cube.corners[5], cube.values[4], cube.values[5], isoLevel);
-
-    if (edgeTable[cubeIndex] & 32) 
-    cube.intersections[5] = vertexInterpolation(cube.corners[5], cube.corners[6], cube.values[5], cube.values[6], isoLevel);
-
-    if (edgeTable[cubeIndex] & 64) 
-    cube.intersections[6] = vertexInterpolation(cube.corners[6], cube.corners[7], cube.values[6], cube.values[7], isoLevel);
-
-    if (edgeTable[cubeIndex] & 128) 
-    cube.intersections[7] = vertexInterpolation(cube.corners[7], cube.corners[4], cube.values[7], cube.values[4], isoLevel);
-
-    if (edgeTable[cubeIndex] & 256) 
-    cube.intersections[8] = vertexInterpolation(cube.corners[4], cube.corners[0], cube.values[4], cube.values[0], isoLevel); //! does order matter?
-
-    if (edgeTable[cubeIndex] & 512) 
-    cube.intersections[9] = vertexInterpolation(cube.corners[5], cube.corners[1], cube.values[5], cube.values[1], isoLevel); //! does order matter?
-
-    if (edgeTable[cubeIndex] & 1024) 
-    cube.intersections[10] = vertexInterpolation(cube.corners[6], cube.corners[2], cube.values[6], cube.values[2], isoLevel); //! does order matter?
-
-    if (edgeTable[cubeIndex] & 2048) 
-    cube.intersections[11] = vertexInterpolation(cube.corners[7], cube.corners[3], cube.values[7], cube.values[3], isoLevel); //! does order matter?
-
-
-    // Create mesh
-    for (int i = 0; triTable[cubeIndex][i] != -1; i +=3) {
-
-        // Create vertices
-        glm::vec3 v1 = cube.intersections[triTable[cubeIndex][i]];
-        glm::vec3 v2 = cube.intersections[triTable[cubeIndex][i + 1]];
-        glm::vec3 v3 = cube.intersections[triTable[cubeIndex][i + 2]];
-
-        // Push into vertex buffer
-        vertexBuffer.push_back(v1.x); vertexBuffer.push_back(v1.y); vertexBuffer.push_back(v1.z);
-        vertexBuffer.push_back(v2.x); vertexBuffer.push_back(v2.y); vertexBuffer.push_back(v2.z);
-        vertexBuffer.push_back(v3.x); vertexBuffer.push_back(v3.y); vertexBuffer.push_back(v3.z);
-
-    }
-
-};
-
-glm::vec3 MarchingCubes::vertexInterpolation(glm::vec3& p1, glm::vec3& p2, float valp1, float valp2, float isoLevel) {
+glm::vec3 TerrainMesh::vertexInterpolation(glm::vec3& p1, glm::vec3& p2, float valp1, float valp2) {
 
     if (fabs(isoLevel - valp1) < 0.00001f) return p1; // p1 is basically on isoLevel
     if (fabs(isoLevel - valp2) < 0.00001f) return p2; // p2 is basically on isoLevel
@@ -395,16 +322,22 @@ glm::vec3 MarchingCubes::vertexInterpolation(glm::vec3& p1, glm::vec3& p2, float
 
 };
 
-std::pair<GLuint, GLuint> MarchingCubes::generateMeshVBO(std::vector<std::vector<std::vector<float>>>& densityField, int x_size, int y_size, int z_size, float isoLevel, size_t& outVertexCount) {
 
-    // Needed for flattening
-	std::vector<float> points;
+std::pair<GLuint, GLuint> TerrainMesh::generateMeshVBO() {
 
-    for (int x = 0; x < x_size - 1; ++x) {
-        for (int y = 0; y < y_size - 1; ++y) {
-            for (int z = 0; z < z_size - 1; ++z) {
+    // For each of the points, add them to a float array (by generating mesh)
+    std::vector<float> points;
 
-                // create cube and intialise variables
+    //
+    // Generate mesh across entire density field
+    //
+    for (int x = 0; x < grid->density.size() - 1; ++x) {
+        for (int y = 0; y < grid->density[0].size() - 1; ++y) {
+            for (int z = 0; z < grid->density[0][0].size() - 1; ++z) {
+
+                //
+                // Create cube
+                //
                 Cube cube;
                 
                 cube.corners[0] = glm::vec3(x,y,z);
@@ -416,23 +349,99 @@ std::pair<GLuint, GLuint> MarchingCubes::generateMeshVBO(std::vector<std::vector
                 cube.corners[6] = glm::vec3(x+1,y+1,z+1);
                 cube.corners[7] = glm::vec3(x,y+1,z+1);
 
-                cube.values[0] = densityField[x][y][z];
-                cube.values[1] = densityField[x+1][y][z];
-                cube.values[2] = densityField[x+1][y+1][z];
-                cube.values[3] = densityField[x][y+1][z];
-                cube.values[4] = densityField[x][y][z+1];
-                cube.values[5] = densityField[x+1][y][z+1];
-                cube.values[6] = densityField[x+1][y+1][z+1];
-                cube.values[7] = densityField[x][y+1][z+1];
+                cube.values[0] = grid->density[x][y][z];
+                cube.values[1] = grid->density[x+1][y][z];
+                cube.values[2] = grid->density[x+1][y+1][z];
+                cube.values[3] = grid->density[x][y+1][z];
+                cube.values[4] = grid->density[x][y][z+1];
+                cube.values[5] = grid->density[x+1][y][z+1];
+                cube.values[6] = grid->density[x+1][y+1][z+1];
+                cube.values[7] = grid->density[x][y+1][z+1];
 
-                // process the cube
-                processCube(cube, isoLevel, points);
+                // 
+                // determine Cube Index (configuration of which corners of a cube are inside or outside the surface i.e. tells us which triangles to generate for that cube)
+                //
 
+                int cubeIndex = 0; // binary: 00000000
+
+                if (cube.values[0] < isoLevel) cubeIndex |= 1; // binary: 00000001 i.e. sets bit 1
+                if (cube.values[1] < isoLevel) cubeIndex |= 2; // binary: 00000010 i.e. sets bit 2
+                if (cube.values[2] < isoLevel) cubeIndex |= 4; // binary: 00000100 i.e. sets bit 3
+                if (cube.values[3] < isoLevel) cubeIndex |= 8; // binary: 00001000 i.e. sets bit 4
+                if (cube.values[4] < isoLevel) cubeIndex |= 16; // binary: 00010000 i.e. sets bit 5
+                if (cube.values[5] < isoLevel) cubeIndex |= 32; // binary: 00100000 i.e. sets bit 6
+                if (cube.values[6] < isoLevel) cubeIndex |= 64; // binary: 01000000 i.e. sets bit 7
+                if (cube.values[7] < isoLevel) cubeIndex |= 128; // binary: 10000000 i.e. sets bit 8
+
+                //
+                // Edge table check
+                //
+
+                // CASE 1: Cube entirely in/out of the surface
+                if (edgeTable[cubeIndex] == 0) {
+                    continue;
+                }
+
+                // CASE 2: Cube intersects surface some where
+                glm::vec3 intersections[12];
+
+                if (edgeTable[cubeIndex] & 1) // if true, isosurface intersects edge 0
+                cube.intersections[0] = vertexInterpolation(cube.corners[0], cube.corners[1], cube.values[0], cube.values[1]); // perform interpolation to find where exactly it interesects
+
+                if (edgeTable[cubeIndex] & 2) // if true, isosurface intersects edge 1
+                cube.intersections[1] = vertexInterpolation(cube.corners[1], cube.corners[2], cube.values[1], cube.values[2]); // perform interpolation to find where exactly it interesects
+
+                if (edgeTable[cubeIndex] & 4) // ...
+                cube.intersections[2] = vertexInterpolation(cube.corners[2], cube.corners[3], cube.values[2], cube.values[3]);
+
+                if (edgeTable[cubeIndex] & 8) 
+                cube.intersections[3] = vertexInterpolation(cube.corners[3], cube.corners[0], cube.values[3], cube.values[0]);
+
+                if (edgeTable[cubeIndex] & 16) 
+                cube.intersections[4] = vertexInterpolation(cube.corners[4], cube.corners[5], cube.values[4], cube.values[5]);
+
+                if (edgeTable[cubeIndex] & 32) 
+                cube.intersections[5] = vertexInterpolation(cube.corners[5], cube.corners[6], cube.values[5], cube.values[6]);
+
+                if (edgeTable[cubeIndex] & 64) 
+                cube.intersections[6] = vertexInterpolation(cube.corners[6], cube.corners[7], cube.values[6], cube.values[7]);
+
+                if (edgeTable[cubeIndex] & 128) 
+                cube.intersections[7] = vertexInterpolation(cube.corners[7], cube.corners[4], cube.values[7], cube.values[4]);
+
+                if (edgeTable[cubeIndex] & 256) 
+                cube.intersections[8] = vertexInterpolation(cube.corners[4], cube.corners[0], cube.values[4], cube.values[0]); //! does order matter?
+
+                if (edgeTable[cubeIndex] & 512) 
+                cube.intersections[9] = vertexInterpolation(cube.corners[5], cube.corners[1], cube.values[5], cube.values[1]); //! does order matter?
+
+                if (edgeTable[cubeIndex] & 1024) 
+                cube.intersections[10] = vertexInterpolation(cube.corners[6], cube.corners[2], cube.values[6], cube.values[2]); //! does order matter?
+
+                if (edgeTable[cubeIndex] & 2048) 
+                cube.intersections[11] = vertexInterpolation(cube.corners[7], cube.corners[3], cube.values[7], cube.values[3]); //! does order matter?
+
+                //
+                // Create mesh
+                //
+                for (int i = 0; triTable[cubeIndex][i] != -1; i +=3) {
+
+                // Create vertices
+                glm::vec3 v1 = cube.intersections[triTable[cubeIndex][i]];
+                glm::vec3 v2 = cube.intersections[triTable[cubeIndex][i + 1]];
+                glm::vec3 v3 = cube.intersections[triTable[cubeIndex][i + 2]];
+
+                // Push into vertex buffer
+                points.push_back(v1.x); points.push_back(v1.y); points.push_back(v1.z);
+                points.push_back(v2.x); points.push_back(v2.y); points.push_back(v2.z);
+                points.push_back(v3.x); points.push_back(v3.y); points.push_back(v3.z);
+
+                }
             }
         }
     }
 
-    outVertexCount = points.size() / 3;
+    vertexCount = points.size() / 3;
 
     // Generate the VAO and VBO
 	GLuint vao, vbo;
@@ -455,3 +464,18 @@ std::pair<GLuint, GLuint> MarchingCubes::generateMeshVBO(std::vector<std::vector
 	return { vao, vbo };
 
 };
+
+size_t TerrainMesh::getVertexCount() {
+    return vertexCount;
+}
+
+void TerrainMesh::setTerrainGrid(TerrainGrid& grid) {
+    this->grid = &grid;
+
+}
+
+void TerrainMesh::setisoLevel(float isoLevel) {
+    this->isoLevel = isoLevel;
+
+}
+

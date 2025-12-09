@@ -5,6 +5,8 @@
 
 Config::Config(TerrainGrid* grid) {
 	terrain = grid;
+	//!terrainMesh->setTerrainGrid(*grid);
+	//!terrainMesh->setisoLevel(0.0f);
 
 	// Initialize the default values
 	// Get the current values of the terrain
@@ -60,6 +62,8 @@ void Config::draw_config() {
 		ImGui::InputInt("Perlin Noise Seed", &pn_seed);
 		if (ImGui::SliderFloat("Perlin Noise Scale", &pn_scale, 0.01f, 1.0f)) {
 			terrain->regenerate(PerlinNoise(pn_seed, pn_scale));
+			//! terrain->generateDensity();
+			//! mesh->regenerate(terrain);
 			terrain_updated = true;
 		}
 

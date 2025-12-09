@@ -1,7 +1,7 @@
 #include "main.hpp"
 #include "TerrainGrid.h"
+#include "TerrainMesh.h"
 #include "ConfigWindow.h"
-#include "MarchingCubes.h"
 
 #include "config.hpp"
 #include "core/Bonobo.h"
@@ -77,9 +77,10 @@ Project::ProjectWrapper::run()
 		throw std::runtime_error("Failed to load debug_mesh_shader");
 	shader_manager.ReloadAllPrograms();
 
-	// Create the TerrainGrid (Which is the 3d Voxel grid representing the terrain)
-	TerrainGrid* grid = new TerrainGrid(glm::ivec3(10), 1.0f);
-	grid->generateDensity(); // Generate density field
+	// Create the TerrainGrid, density field and TerrainMesh
+	TerrainGrid* grid = new TerrainGrid(glm::ivec3(50), 1.0f);
+	grid->generateDensity();
+	TerrainMesh* mesh = new TerrainMesh(*grid, 0.5f);
 
 	//
 	// Create the Debug Points VBO/VAO
@@ -91,10 +92,7 @@ Project::ProjectWrapper::run()
 	//
 	// Create the Debug Mesh VBO/VAO
 	//
-	MarchingCubes mc;
-	size_t mcVertexCount = 0;
-	std::pair<GLuint, GLuint> debug_mesh = mc.generateMeshVBO(grid->density, grid->get_x_size(), grid->get_y_size(), grid->get_z_size(), 0.5f, mcVertexCount);
-	std::cout << "Debug mesh vertices: " << mcVertexCount << std::endl; //! Check!
+	std::pair<GLuint, GLuint> debug_mesh = mesh->generateMeshVBO();
 	GLuint debug_mesh_vao = debug_mesh.first;
 	GLuint debug_mesh_vbo = debug_mesh.second;
 
@@ -183,7 +181,7 @@ Project::ProjectWrapper::run()
 			glUniformMatrix4fv(glGetUniformLocation(debug_mesh_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 			glBindVertexArray(debug_mesh_vao);
-			glDrawArrays(GL_TRIANGLES, 0, mcVertexCount);
+			glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
 			glBindVertexArray(0);
 			glUseProgram(0);
 		}
@@ -197,6 +195,10 @@ Project::ProjectWrapper::run()
 			std::pair<GLuint, GLuint> debug_points = grid->debugPointsVBOWithDimensions(dimensions.first, dimensions.second);
 			debug_points_vao = debug_points.first;
 			debug_points_vbo = debug_points.second;
+
+			//!std::pair<GLuint, GLuint> debug_mesh = mesh->generateMeshVBO();
+			//!debug_mesh_vao = debug_mesh.first;
+			//!debug_mesh_vbo = debug_mesh.second;
 		}
 
 
