@@ -90,6 +90,9 @@ void Config::draw_config() {
 					}
 
 					int max_slice = (pd_single_slice_axis == 0 ? terrain_dimensions.x - 1 : (pd_single_slice_axis == 1 ? terrain_dimensions.y - 1 : terrain_dimensions.z - 1));
+					if (pd_single_slice < 0) pd_single_slice = 0;
+					if (pd_single_slice > max_slice) pd_single_slice = max_slice;
+
 					if (ImGui::SliderInt("Slice index", &pd_single_slice, 0, max_slice)) {
 						terrain_updated = true;
 					}
