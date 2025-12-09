@@ -77,10 +77,8 @@ Project::ProjectWrapper::run()
 		throw std::runtime_error("Failed to load debug_mesh_shader");
 	shader_manager.ReloadAllPrograms();
 
-
 	// Create the TerrainGrid (Which is the 3d Voxel grid representing the terrain)
-	TerrainGrid* grid = new TerrainGrid(50, 50, 50, 1.0f);
-	grid->regenerate(); // Generate it immediately
+	TerrainGrid* grid = new TerrainGrid(glm::ivec3(10), 1.0f);
 	grid->generateDensity(); // Generate density field
 
 	//
@@ -92,13 +90,13 @@ Project::ProjectWrapper::run()
 
 	//
 	// Create the Debug Mesh VBO/VAO
+	//
 	MarchingCubes mc;
 	size_t mcVertexCount = 0;
-	std::pair<GLuint, GLuint> debug_mesh = mc.generateMeshVBO(grid->density, grid->get_x_size(), grid->get_y_size(), grid->get_z_size(), 25.0f, mcVertexCount);
+	std::pair<GLuint, GLuint> debug_mesh = mc.generateMeshVBO(grid->density, grid->get_x_size(), grid->get_y_size(), grid->get_z_size(), 0.5f, mcVertexCount);
 	std::cout << "Debug mesh vertices: " << mcVertexCount << std::endl; //! Check!
 	GLuint debug_mesh_vao = debug_mesh.first;
 	GLuint debug_mesh_vbo = debug_mesh.second;
-
 
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
@@ -170,7 +168,10 @@ Project::ProjectWrapper::run()
 
 			glBindVertexArray(debug_points_vao);
 			glPointSize(config->pd_point_size);
-			glDrawArrays(GL_POINTS, 0, grid->get_total_size()); //! CHECK!
+
+			auto renderRange = config->pointsDebuggerRange(); // the range of indexes to render
+			glm::vec3 renderSize = renderRange.second - renderRange.first; // Dimensions of what to render
+			glDrawArrays(GL_POINTS, 0, renderSize.x * renderSize.y * renderSize.z);
 			glBindVertexArray(0);
 			glUseProgram(0);
 		}
@@ -192,8 +193,8 @@ Project::ProjectWrapper::run()
 		
 		// If the terrain is changed (by the user in the config window), update the grid and recreate the VAO/VBOs
 		if (config->terrain_updated) {
-			// Regenerate the debug points VBO/VAO
-			std::pair<GLuint, GLuint> debug_points = grid->debugPointsVBO();
+			auto dimensions = config->pointsDebuggerRange();
+			std::pair<GLuint, GLuint> debug_points = grid->debugPointsVBOWithDimensions(dimensions.first, dimensions.second);
 			debug_points_vao = debug_points.first;
 			debug_points_vbo = debug_points.second;
 		}

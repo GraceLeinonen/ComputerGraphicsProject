@@ -1,28 +1,34 @@
 #include "TerrainGrid.h"
 #include "core/Bonobo.h"
 
-TerrainGrid::TerrainGrid(int x, int y, int z, float scale)
-	: x_size(x), y_size(y), z_size(z), grid(x * y * z, false), scale(scale) // Set the x, y and z sizes, and initiallise the grid to all empty values
-{}
+TerrainGrid::TerrainGrid(glm::ivec3 dimensions, float scale)
+	: dim(dimensions), grid(dimensions.x * dimensions.y * dimensions.z, false), scale(scale), noise(PerlinNoise(0, 0.1f)) // Set the x, y and z sizes, and initiallise the grid to all empty values
+{
+	regenerate(noise); // Generate the terrain immediately with the current noise function
+}
 
 bool TerrainGrid::get(int x, int y, int z) const {
-	return grid[x + y * x_size + z * x_size * y_size];
+	return grid[x + y * dim.x + z * dim.x * dim.y];
 }
 
 void TerrainGrid::set(int x, int y, int z, bool newValue) {
-	grid[x + y * x_size + z * x_size * y_size] = newValue;
+	grid[x + y * dim.x + z * dim.x * dim.y] = newValue;
 }
 
 int TerrainGrid::get_x_size() const {
-	return x_size;
+	return dim.x;
 }
 
 int TerrainGrid::get_y_size() const {
-	return y_size;
+	return dim.y;
 }
 
 int TerrainGrid::get_z_size() const {
-	return z_size;
+	return dim.z;
+}
+
+glm::ivec3 TerrainGrid::get_dimensions() const {
+	return dim;
 }
 
 float TerrainGrid::get_scale() const {
@@ -37,31 +43,39 @@ void TerrainGrid::set_scale(float newScale) {
 	scale = newScale;
 }
 
+PerlinNoise TerrainGrid::getNoise() const {
+	return noise;
+}
+
 
 void TerrainGrid::clear() {
 	for (int i = 0; i < grid.size(); i++) {
 		grid[i] = false;
 	}
-
-	for (int x = 0; x < x_size; x++) {
-		for (int z = 0; z < z_size; z++) {
-			grid[x + z * y_size * x_size] = true;
+	for (int x = 0; x < dim.x; x++) {
+		for (int z = 0; z < dim.z; z++) {
+			grid[x + z * dim.x * dim.y] = true;
 		}
 	}
 }
 
 std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
+	return debugPointsVBOWithDimensions(glm::ivec3(0), dim);
+}
+
+
+std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBOWithDimensions(glm::ivec3 minIndexes, glm::ivec3 maxIndexes) {
 	LogInfo("Creating a new VAO/VBO for the debug points of the terrain grid.");
 
 	// For each of the points, add them to a float array and add a colour flag
 	std::vector<float> points;
-	for (int x = 0; x < x_size; x++)
-		for (int y = 0; y < y_size; y++)
-			for (int z = 0; z < z_size; z++) {
+	for (int x = minIndexes.x; x < glm::min(dim.x, maxIndexes.x); x++)
+		for (int y = minIndexes.y; y < glm::min(dim.y, maxIndexes.y); y++)
+			for (int z = minIndexes.z; z < glm::min(dim.z, maxIndexes.z); z++) {
 				points.push_back((float)x * scale);
 				points.push_back((float)y * scale);
 				points.push_back((float)z * scale);
-				if (is_solid(x, y, z)) {
+				if (get(x, y, z)) {
 					points.push_back(1.0f); // 0x1 colour flag to indicate a terrain voxel
 				}
 				else {
@@ -81,8 +95,8 @@ std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
 	// Add the data to the buffers
 	glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(float), points.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // the world position data (at pos=0) needs 3 floats of data
-	//glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float))); // the colour flag data (at pos=1) needs 1 float of data
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0); // the world position data (at pos=0) needs 3 floats of data
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float))); // the colour flag data (at pos=1) needs 1 float of data
 	glEnableVertexAttribArray(0); // Enable position at pos=0
 	glEnableVertexAttribArray(1); // Enable colour flag at pos=1
 
@@ -94,63 +108,64 @@ std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
 }
 
 
-//! This is just creating an elevation map based on the size of the grid
-void TerrainGrid::regenerate() {
+void TerrainGrid::regenerate(PerlinNoise newNoise) {
+	LogInfo("Regenerating the terrain  with perlin noise");
+	noise = newNoise; // Save the noise function in case we need to generate more later (if the grid is resized)
 
-	elevationMap.resize(x_size, std::vector<float>(z_size));
-
-	for (int x = 0; x < x_size; x++) {
-		for (int z = 0; z < z_size; z++) {
-			float n = noise.noise(x * 0.1f, z * 0.1f); //! NOTE: NEED TO SCALE
-			elevationMap[x][z] = (n + 1.0) * 0.5 * y_size;
-		}
-	}
-
-	
-
-
-}
-
-void TerrainGrid::resize(int newX, int newY, int newZ) {
-	std::vector<uint8_t> newGrid(newX * newY * newZ, false);
-
-	// Loop through the overlapping area between the new and old grid, and move the values to the new grid coordinates.
-	for (int x = 0; x < std::min(x_size, newX); x++) {
-		for (int y = 0; y < std::min(y_size, newY); y++) {
-			for (int z = 0; z < std::min(z_size, newZ); z++) {
-				newGrid[x + y * newX + z * newX * newY] = get(x, y, z);
+	for (int x = 0; x < dim.x; x++) {
+		for (int z = 0; z < dim.z; z++) {
+			float noise_height = noise.sampleNoise(x, z); // Sample the height between 0-1 at this position
+			noise_height = floor(noise_height * dim.y); // Scale it by our max Y height and floor this
+			// Set the voxels to true as long as they are below or equal to this noise height
+			for (int y = 0; y < dim.y; y++) {
+				if (y <= noise_height) {
+					set(x, y, z, true);
+				}
+				else {
+					set(x, y, z, false);
+				}
 			}
 		}
 	}
-
-	x_size = newX;
-	y_size = newY;
-	z_size = newZ;
-	grid = newGrid;
 }
 
+void TerrainGrid::resize(glm::ivec3 newDimensions) {
+	LogInfo("Resizing to %i, %i, %i", newDimensions.x, newDimensions.y, newDimensions.z);
+	std::vector<uint8_t> original = grid; // Copy the current grid
 
-bool TerrainGrid::is_solid(int x, int y, int z) {
-	
-	// Handle boundary cases
-	if (x < 0 || z < 0 || x >= x_size || z >= z_size) return false;
+	glm::ivec3 oldDim = dim; // Save the old dimensions
+	dim = newDimensions; // Set the dimensions
+	grid = std::vector<uint8_t>(dim.x * dim.y * dim.z, false); // Actually create a grid the right size
+	regenerate(noise); // Use the regenerate to generate an entire grid based on the current noise pattern
 
-	// check if y is less than value in elevation map
-	return y <= elevationMap[x][z];
-
+	// If Y changed, we can't keep the edited map since we would have to stretch/squash it along the y-axis
+	if (oldDim.y != dim.y) return;
+	// Add as much of the original grid back as possible
+	for (int x = 0; x < glm::min(dim.x, oldDim.x); x++) {
+		for (int y = 0; y < glm::min(dim.y, oldDim.y); y++) {
+			for (int z = 0; z < glm::min(dim.z, oldDim.z); z++) {
+				grid[x + y * dim.x + z * dim.x * dim.y] = original[x + y * oldDim.x + z * oldDim.x * oldDim.y];
+			}
+		}
+	}
 }
-
 
 void TerrainGrid::generateDensity() {
 
-	density.resize(x_size);
-	for (int x = 0; x < x_size; ++x) {
-		density[x].resize(y_size);
-		for (int y = 0; y < y_size; ++y) {
-			density[x][y].resize(z_size);
-			for (int z = 0; z < z_size; ++z) {
+	density.resize(dim.x);
+	for (int x = 0; x < dim.x; ++x) {
+		density[x].resize(dim.y);
+		for (int y = 0; y < dim.y; ++y) {
+			density[x][y].resize(dim.z);
+			for (int z = 0; z < dim.z; ++z) {
 
-				density[x][y][z] = (noise.noise(x * 0.1f, z * 0.1f) + 1.0) * 0.5 * y_size;
+				float height = getNoise().sampleNoise(x,z) * dim.y; // a value between 0-1 * height of grid
+				density[x][y][z] = y - height;
+
+				// when y < height, inside terrain
+				// when y == height, on terrain
+				// when y > height, above terrain
+				// algorithm will generate triangles at locations where density = isoLevel
 			}
 		}
 	}

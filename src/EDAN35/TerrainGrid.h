@@ -3,6 +3,7 @@
 #include "PerlinNoise.h"
 
 #include <vector>
+#include <glm/vec3.hpp>
 #include <glad/glad.h>  
 
 // The Terrain grid represents the terrain as a 3d grid of booleans (basically voxels)
@@ -10,33 +11,35 @@
 class TerrainGrid {
 public:
 	TerrainGrid() = delete; // No default constructor, we require dimensions to be provided
-	TerrainGrid(int x, int y, int z, float scale);
+	TerrainGrid(glm::ivec3 dimensions, float scale);
 
 	bool get(int x, int y, int z) const; // Gets the boolean value at X, Y, Z in the grid
 	void set(int x, int y, int z, bool newValue); // Sets the boolean value at X, Y, Z in the grid
-	void resize(int newX, int newY, int newZ); // Resizes the grid to new dimensions, while keeping as much of the current contents as possible
-	void regenerate(); // Regenerate the grid with new Perlin noise terrain
+	void resize(glm::ivec3 newDimensions); // Resizes the grid to new dimensions, while keeping as much of the current contents as possible
+	void regenerate(PerlinNoise newNoise); // Regenerate the grid with new Perlin noise terrain
 	void clear(); // Clears the grid to air, except for the bottom layer which is solid ground
-	bool is_solid(int x, int y, int z); // Checks if a block is solid
 
-	std::vector<std::vector<std::vector<float>>> density; // Density field for marching cubes
 	std::pair<GLuint, GLuint> debugPointsVBO(); // Returns the VAO and VBO (in that order) for rendering the grid as points for debugging
+	// Returns the VAO and VBO (in that order) for rendering the grid as points (within a specific subsection of the grid) for debugging
+	std::pair<GLuint, GLuint> debugPointsVBOWithDimensions(glm::ivec3 minIndexes, glm::ivec3 maxIndexes);
+
+	std::vector<std::vector<std::vector<float>>> density;
 
 	int get_x_size() const;
 	int get_y_size() const;
 	int get_z_size() const;
+	glm::ivec3 get_dimensions() const; // Gets all dimensions as a vec
 	int get_total_size() const;
-	float get_scale() const;
 
+	float get_scale() const;
 	void set_scale(float newScale);
 
+	PerlinNoise getNoise() const;
 	void generateDensity();
 
-
 private:
-	int x_size, y_size, z_size;
+	glm::ivec3 dim; // The dimensions of the terrain grid
 	float scale;
 	std::vector<uint8_t> grid;
 	PerlinNoise noise;
-	std::vector<std::vector<float>> elevationMap;
 };
