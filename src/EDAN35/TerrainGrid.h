@@ -19,6 +19,7 @@ public:
 	void clear(); // Clears the grid to air, except for the bottom layer which is solid ground
 	bool is_solid(int x, int y, int z); // Checks if a block is solid
 
+	std::vector<std::vector<std::vector<float>>> density; // Density field for marching cubes
 	std::pair<GLuint, GLuint> debugPointsVBO(); // Returns the VAO and VBO (in that order) for rendering the grid as points for debugging
 
 	int get_x_size() const;
@@ -28,6 +29,8 @@ public:
 	float get_scale() const;
 
 	void set_scale(float newScale);
+
+	void generateDensity();
 
 
 private:

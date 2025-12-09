@@ -19,6 +19,8 @@ public:
 	bool pd_show_points_debugger; // pd_ = points_debugger_
 	float pd_point_size;
 
+	bool md_show_mesh_debugger; // md_ = mesh_debugger_
+
 	bool bd_show_basis; // bd_ = basis_debugger_
 	float bd_thickness;
 	float bd_length;

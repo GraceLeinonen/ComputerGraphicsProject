@@ -62,10 +62,10 @@ std::pair<GLuint, GLuint> TerrainGrid::debugPointsVBO() {
 				points.push_back((float)y * scale);
 				points.push_back((float)z * scale);
 				if (is_solid(x, y, z)) {
-					// points.push_back(1.0f); // 0x1 colour flag to indicate a terrain voxel
+					points.push_back(1.0f); // 0x1 colour flag to indicate a terrain voxel
 				}
 				else {
-					// points.push_back(0.0f); // 0x0 colour flag to indicate an empty voxel
+					points.push_back(0.0f); // 0x0 colour flag to indicate an empty voxel
 				}
 			}
 
@@ -103,9 +103,7 @@ void TerrainGrid::regenerate() {
 		for (int z = 0; z < z_size; z++) {
 			float n = noise.noise(x * 0.1f, z * 0.1f); //! NOTE: NEED TO SCALE
 			elevationMap[x][z] = (n + 1.0) * 0.5 * y_size;
-			std::cout << elevationMap[x][n] << " ";
 		}
-		std::cout << std::endl;
 	}
 
 	
@@ -140,4 +138,20 @@ bool TerrainGrid::is_solid(int x, int y, int z) {
 	// check if y is less than value in elevation map
 	return y <= elevationMap[x][z];
 
+}
+
+
+void TerrainGrid::generateDensity() {
+
+	density.resize(x_size);
+	for (int x = 0; x < x_size; ++x) {
+		density[x].resize(y_size);
+		for (int y = 0; y < y_size; ++y) {
+			density[x][y].resize(z_size);
+			for (int z = 0; z < z_size; ++z) {
+
+				density[x][y][z] = (noise.noise(x * 0.1f, z * 0.1f) + 1.0) * 0.5 * y_size;
+			}
+		}
+	}
 }

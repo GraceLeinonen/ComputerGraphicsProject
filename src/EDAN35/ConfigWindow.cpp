@@ -14,6 +14,8 @@ Config::Config(TerrainGrid* grid) {
 	pd_show_points_debugger = false; // pd_ = points_debugger_
 	pd_point_size = 20.0f;
 
+	md_show_mesh_debugger = false; // md_ = mesh_debugger_
+
 	bd_show_basis = false; // bd_ = basis_debugger_
 	bd_thickness = 1.0f;
 	bd_length = 3.0f;
@@ -58,6 +60,7 @@ void Config::draw_config() {
 			if (pd_show_points_debugger) {
 				ImGui::SliderFloat("Point size", &pd_point_size, 1.0f, 50.0f);
 			}
+			ImGui::Checkbox("Show mesh debugger", &md_show_mesh_debugger);
 			ImGui::Checkbox("Show basis", &bd_show_basis);
 			if (bd_show_basis) {
 				ImGui::SliderFloat("Basis thickness scale", &bd_thickness, 0.0f, 100.0f);

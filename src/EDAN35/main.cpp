@@ -1,6 +1,7 @@
 #include "main.hpp"
 #include "TerrainGrid.h"
 #include "ConfigWindow.h"
+#include "MarchingCubes.h"
 
 #include "config.hpp"
 #include "core/Bonobo.h"
@@ -53,9 +54,9 @@ Project::ProjectWrapper::run()
 	// Load the shader used for rendering the debug points
 	GLuint debug_point_shader = 0u;
 	shader_manager.CreateAndRegisterProgram(
-		"triangle_shader",
-		{ { ShaderType::vertex,   "common/triangle.vert" },
-		  { ShaderType::fragment, "common/triangle.frag" } },
+		"debug_point_shader",
+		{ { ShaderType::vertex,   "common/DebugPointShader.vert" },
+		  { ShaderType::fragment, "common/DebugPointShader.frag" } },
 		debug_point_shader
 	);
 
@@ -63,9 +64,24 @@ Project::ProjectWrapper::run()
 		throw std::runtime_error("Failed to load debug_point_shader");
 	shader_manager.ReloadAllPrograms();
 
+	// Load the shader used for rendering the debug mesh
+	GLuint debug_mesh_shader = 0u;
+	shader_manager.CreateAndRegisterProgram(
+		"debug_mesh_shader",
+		{ { ShaderType::vertex,   "common/DebugMeshShader.vert" },
+		  { ShaderType::fragment, "common/DebugMeshShader.frag" } },
+		debug_mesh_shader
+	);
+
+	if (debug_mesh_shader == 0u)
+		throw std::runtime_error("Failed to load debug_mesh_shader");
+	shader_manager.ReloadAllPrograms();
+
+
 	// Create the TerrainGrid (Which is the 3d Voxel grid representing the terrain)
 	TerrainGrid* grid = new TerrainGrid(50, 50, 50, 1.0f);
 	grid->regenerate(); // Generate it immediately
+	grid->generateDensity(); // Generate density field
 
 	//
 	// Create the Debug Points VBO/VAO
@@ -73,6 +89,17 @@ Project::ProjectWrapper::run()
 	std::pair<GLuint, GLuint> debug_points = grid->debugPointsVBO();
 	GLuint debug_points_vao = debug_points.first;
 	GLuint debug_points_vbo = debug_points.second;
+
+	//
+	// Create the Debug Mesh VBO/VAO
+	MarchingCubes mc;
+	size_t mcVertexCount = 0;
+	std::pair<GLuint, GLuint> debug_mesh = mc.generateMeshVBO(grid->density, grid->get_x_size(), grid->get_y_size(), grid->get_z_size(), 25.0f, mcVertexCount);
+	std::cout << "Debug mesh vertices: " << mcVertexCount << std::endl; //! Check!
+	GLuint debug_mesh_vao = debug_mesh.first;
+	GLuint debug_mesh_vbo = debug_mesh.second;
+
+
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
 
@@ -143,11 +170,22 @@ Project::ProjectWrapper::run()
 
 			glBindVertexArray(debug_points_vao);
 			glPointSize(config->pd_point_size);
-			glDrawArrays(GL_POINTS, 0, grid->get_total_size());
+			glDrawArrays(GL_POINTS, 0, grid->get_total_size()); //! CHECK!
 			glBindVertexArray(0);
 			glUseProgram(0);
 		}
 
+		// Render the debug mesh
+		if (config->md_show_mesh_debugger) {
+			glUseProgram(debug_mesh_shader); // Use the debug point shader
+			// Provide the projection matrix to the shader
+			glUniformMatrix4fv(glGetUniformLocation(debug_mesh_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+			glBindVertexArray(debug_mesh_vao);
+			glDrawArrays(GL_TRIANGLES, 0, mcVertexCount);
+			glBindVertexArray(0);
+			glUseProgram(0);
+		}
 
 		// Draw the scene controls window
 		config->draw_config();
