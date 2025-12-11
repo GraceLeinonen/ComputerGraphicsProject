@@ -1,6 +1,8 @@
 #include "main.hpp"
 #include "TerrainGrid.h"
 #include "ConfigWindow.h"
+#include "SculptingRaycaster.h"
+#include "Crosshair.h"
 
 #include "config.hpp"
 #include "core/Bonobo.h"
@@ -53,7 +55,7 @@ Project::ProjectWrapper::run()
 	// Load the shader used for rendering the debug points
 	GLuint debug_point_shader = 0u;
 	shader_manager.CreateAndRegisterProgram(
-		"triangle_shader",
+		"debugpoint_shader",
 		{ { ShaderType::vertex,   "common/DebugPointShader.vert" },
 		  { ShaderType::fragment, "common/DebugPointShader.frag" } },
 		debug_point_shader
@@ -61,17 +63,34 @@ Project::ProjectWrapper::run()
 
 	if (debug_point_shader == 0u)
 		throw std::runtime_error("Failed to load debug_point_shader");
+
+	GLuint simple_shader = 0u;
+	shader_manager.CreateAndRegisterProgram(
+		"simple_shader",
+		{ { ShaderType::vertex,   "common/simple.vert" },
+		  { ShaderType::fragment, "common/simple.frag" } },
+		simple_shader
+	);
+
+	if (simple_shader == 0u)
+		throw std::runtime_error("Failed to load debug_point_shader");
+
+	GLuint screenspace_shader = 0u;
+	shader_manager.CreateAndRegisterProgram(
+		"screenspace_shader",
+		{ { ShaderType::vertex,   "common/screen.vert" },
+		  { ShaderType::fragment, "common/screen.frag" } },
+		screenspace_shader
+	);
+
+	if (screenspace_shader == 0u)
+		throw std::runtime_error("Failed to load debug_point_shader");
+
+
 	shader_manager.ReloadAllPrograms();
 
 	// Create the TerrainGrid (Which is the 3d Voxel grid representing the terrain)
 	TerrainGrid* grid = new TerrainGrid(glm::ivec3(10), 1.0f);
-
-	//
-	// Create the Debug Points VBO/VAO
-	//
-	std::pair<GLuint, GLuint> debug_points = grid->debugPointsVBO();
-	GLuint debug_points_vao = debug_points.first;
-	GLuint debug_points_vbo = debug_points.second;
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
 
@@ -84,7 +103,14 @@ Project::ProjectWrapper::run()
 
 	// Create the Config, which is used to manage the Scene Controls window
 	Config* config = new Config(grid);
-	
+	// Create the Sculpting Raycaster, which is used to cast sculpting rays
+	SculptingRaycaster* sculpter = new SculptingRaycaster(grid);
+	glm::ivec2 windowSize;
+
+	Crosshair* crosshair = new Crosshair();
+	glfwGetWindowSize(window, &windowSize.x, &windowSize.y);
+
+
 	while (!glfwWindowShouldClose(window)) {
 
 		//
@@ -111,6 +137,14 @@ Project::ProjectWrapper::run()
 			mWindowManager.ToggleFullscreenStatusForWindow(window);
 
 
+		// Get input for the sculpt terrain tool
+		if (inputHandler.GetKeycodeState(GLFW_KEY_Z) & JUST_PRESSED) {
+			sculpter->cast(&mCamera, false, config->sculpter_size);
+		}
+		if (inputHandler.GetKeycodeState(GLFW_KEY_X) & JUST_PRESSED) {
+			sculpter->cast(&mCamera, true, config->sculpter_size);
+		}
+
 		// Retrieve the actual framebuffer size: for HiDPI monitors,
 		// you might end up with a framebuffer larger than what you
 		// actually asked for. For example, if you ask for a 1920x1080
@@ -136,32 +170,11 @@ Project::ProjectWrapper::run()
 
 		// Render the debug points
 		if (config->pd_show_points_debugger) {
-			glUseProgram(debug_point_shader); // Use the debug point shader
-			// Provide the projection matrix to the shader
-			glUniformMatrix4fv(glGetUniformLocation(debug_point_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-			glBindVertexArray(debug_points_vao);
-			glPointSize(config->pd_point_size);
-
-			auto renderRange = config->pointsDebuggerRange(); // the range of indexes to render
-			glm::vec3 renderSize = renderRange.second - renderRange.first; // Dimensions of what to render
-			glDrawArrays(GL_POINTS, 0, renderSize.x * renderSize.y * renderSize.z);
-			glBindVertexArray(0);
-			glUseProgram(0);
+			grid->drawDebugPoints(&mCamera, debug_point_shader, config->pd_point_size);
 		}
-
-
-		// Draw the scene controls window
-		config->draw_config();
-		
-		// If the terrain is changed (by the user in the config window), update the grid and recreate the VAO/VBOs
-		if (config->terrain_updated) {
-			auto dimensions = config->pointsDebuggerRange();
-			std::pair<GLuint, GLuint> debug_points = grid->debugPointsVBOWithDimensions(dimensions.first, dimensions.second);
-			debug_points_vao = debug_points.first;
-			debug_points_vbo = debug_points.second;
+		if (config->show_sculpting_rays) {
+			sculpter->drawRays(&mCamera, simple_shader);
 		}
-
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
@@ -171,6 +184,15 @@ Project::ProjectWrapper::run()
 		// Render the logs window (if enabled)
 		if (show_logs)
 			Log::View::Render();
+
+		if (config->show_crosshair) {
+			crosshair->setSize(config->crosshair_size);
+			crosshair->draw(screenspace_shader);
+		}
+
+
+		// Draw the scene controls window
+		config->draw_config();
 		// Render the ImGui windows
 		mWindowManager.RenderImGuiFrame(show_gui);
 
