@@ -15,7 +15,8 @@ public:
 
 	glm::ivec3 terrain_dimensions; // The amount of voxels in the terrain grid
 	float terrain_scale; // The distance between each voxel in the terrain grid
-	bool terrain_updated; // Is TRUE on the frame where the terrain is updated (and so VAO/VBOs need to be regenerated)
+
+	float sculpter_size; // The size of the sculpting brush
 
 	bool pd_show_points_debugger; // pd_ = points_debugger_
 	float pd_point_size;
@@ -25,6 +26,9 @@ public:
 	std::pair<glm::ivec3, glm::ivec3> pointsDebuggerRange() const;
 
 	bool md_show_mesh_debugger; // md_ = mesh_debugger_
+	bool show_sculpting_rays; // Toggle for showing sculpting debug rays
+	bool show_crosshair;
+	float crosshair_size;
 
 	bool bd_show_basis; // bd_ = basis_debugger_
 	float bd_thickness;
