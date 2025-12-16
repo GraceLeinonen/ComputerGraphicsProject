@@ -72,6 +72,10 @@ PerlinNoise TerrainGrid::getNoise() const {
 	return noise;
 }
 
+PerlinNoise TerrainGrid::getNoise() const {
+	return noise;
+}
+
 
 void TerrainGrid::clear() {
 	for (int i = 0; i < grid.size(); i++) {
@@ -197,9 +201,8 @@ void TerrainGrid::regenerateVBO() {
 }
 
 
-
 void TerrainGrid::regenerate(PerlinNoise newNoise) {
-	LogInfo("Regenerating the terrain  with perlin noise");
+	LogInfo("Regenerating the terrain with perlin noise");
 	noise = newNoise; // Save the noise function in case we need to generate more later (if the grid is resized)
 
 	for (int x = 0; x < dim.x; x++) {
@@ -243,4 +246,25 @@ void TerrainGrid::resize(glm::ivec3 newDimensions) {
 
 	// Regenerate the VBO since the grid has changed
 	regenerateVBO();
+}
+
+void TerrainGrid::generateDensity() {
+
+	density.resize(dim.x);
+	for (int x = 0; x < dim.x; ++x) {
+		density[x].resize(dim.y);
+		for (int y = 0; y < dim.y; ++y) {
+			density[x][y].resize(dim.z);
+			for (int z = 0; z < dim.z; ++z) {
+
+				float height = getNoise().sampleNoise(x,z) * dim.y; // a value between 0-1 * height of grid
+				density[x][y][z] = y - height;
+
+				// when y < height, inside terrain
+				// when y == height, on terrain
+				// when y > height, above terrain
+				// algorithm will generate triangles at locations where density = isoLevel
+			}
+		}
+	}
 }

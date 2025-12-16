@@ -24,6 +24,8 @@ public:
 
 	void drawDebugPoints(FPSCameraf* camera, GLuint shader, float pointSize); // Draws the grid as points for debugging purposes
 	void setDebugPointsRange(glm::ivec3 minIndexes, glm::ivec3 maxIndexes); // Sets a range of indices to draw when using DebugPoints
+  
+  std::vector<std::vector<std::vector<float>>> density; //! move to private!
 
 	int get_x_size() const;
 	int get_y_size() const;
@@ -35,6 +37,7 @@ public:
 	void set_scale(float newScale);
 
 	PerlinNoise getNoise() const;
+	void generateDensity();
 
 private:
 	int getIndex(glm::ivec3 p) const;

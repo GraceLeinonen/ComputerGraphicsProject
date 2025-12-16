@@ -2,6 +2,7 @@
 
 #include <glm/vec3.hpp>
 #include "TerrainGrid.h"
+#include "TerrainMesh.h"
 
 
 // The config is an object representation of the state of the Scene Controls window
@@ -24,6 +25,7 @@ public:
 	int pd_single_slice;
 	std::pair<glm::ivec3, glm::ivec3> pointsDebuggerRange() const;
 
+	bool md_show_mesh_debugger; // md_ = mesh_debugger_
 	bool show_sculpting_rays; // Toggle for showing sculpting debug rays
 	bool show_crosshair;
 	float crosshair_size;
@@ -36,4 +38,5 @@ public:
 	float pn_scale;
 private:
 	TerrainGrid* terrain;
+	//!TerrainMesh* terrainMesh;
 };
