@@ -5,7 +5,7 @@ target_sources (
 	PRIVATE
 		"main.hpp"
 		"main.cpp"
- "TerrainGrid.cpp" "TerrainGrid.h" "ConfigWindow.cpp" "ConfigWindow.h" "PerlinNoise.cpp" "PerlinNoise.h")
+ "TerrainGrid.cpp" "TerrainGrid.h" "ConfigWindow.cpp" "ConfigWindow.h" "PerlinNoise.cpp" "PerlinNoise.h" "SculptingRaycaster.cpp" "SculptingRaycaster.h" "Crosshair.cpp" "Crosshair.h" "Crosshair.cpp")
 
 target_link_libraries (EDAN35_Project PRIVATE assignment_setup)
 
