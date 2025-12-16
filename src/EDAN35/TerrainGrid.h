@@ -53,5 +53,4 @@ private:
 	float scale;
 	std::vector<uint8_t> grid;
 	PerlinNoise noise;
-	float maxY;
 };

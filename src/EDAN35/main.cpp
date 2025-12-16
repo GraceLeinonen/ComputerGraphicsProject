@@ -187,7 +187,7 @@ Project::ProjectWrapper::run()
 		glm::mat4 projection = mCamera.GetWorldToClipMatrix();
 
 		if (config->md_show_mesh_debugger) {
-			mesh->draw(&mCamera, triplanar_shader, grid->get_maxY() * grid->get_scale());
+			mesh->draw(&mCamera, triplanar_shader, grid->get_y_size() * grid->get_scale());
 		}
     
 		// Render the debug points

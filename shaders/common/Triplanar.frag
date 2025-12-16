@@ -20,7 +20,7 @@ void main() {
 
     // define snow start and end
     float snow_start = max_y * 0.6;
-    float snow_end = max_y;
+    float snow_end = max_y * 0.8;
 
     // blending
     float alpha = smoothstep(snow_start, snow_end, fs_in.world_y);
