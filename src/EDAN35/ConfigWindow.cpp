@@ -3,8 +3,12 @@
 #include <imgui.h>
 #include "core/Bonobo.h"
 
-Config::Config(TerrainGrid* grid) {
+Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer) {
 	terrain = grid;
+	this->debugPointRenderer = debugPointRenderer;
+
+	//!terrainMesh->setTerrainGrid(*grid);
+	//!terrainMesh->setisoLevel(0.0f);
 
 	// Initialize the default values
 	// Get the current values of the terrain
@@ -19,6 +23,7 @@ Config::Config(TerrainGrid* grid) {
 	pd_single_slice_axis = 0; // 0 = x, 1 = y, 2 = z
 	pd_single_slice = terrain_dimensions.y / 2; // Default to the middle slice
 
+	md_show_mesh_debugger = true; // md_ = mesh_debugger_
 	show_sculpting_rays = false;
 	crosshair_size = 4.0f;
 	show_crosshair = true;
@@ -94,7 +99,7 @@ void Config::draw_config() {
 				ImGui::Checkbox("Show only 1 slice", &pd_show_single_slice);
 
 				if (pd_show_single_slice) {
-					terrain->setDebugPointsRange(pointsDebuggerRange().first, pointsDebuggerRange().second);
+					debugPointRenderer->setDebugPointsRange(pointsDebuggerRange().first, pointsDebuggerRange().second);
 
 					if (ImGui::Button("X")) {
 						pd_single_slice_axis = 0;
@@ -112,13 +117,16 @@ void Config::draw_config() {
 					if (pd_single_slice < 0) pd_single_slice = 0;
 					if (pd_single_slice > max_slice) pd_single_slice = max_slice;
 
-					ImGui::SliderInt("Slice index", &pd_single_slice, 0, max_slice);
+          ImGui::SliderInt("Slice index", &pd_single_slice, 0, max_slice);
 				} else {
-					terrain->setDebugPointsRange(glm::vec3(0), terrain->get_dimensions());
+					debugPointRenderer->setDebugPointsRange(glm::vec3(0), terrain->get_dimensions());
 				}
 			}
 			ImGui::Separator();
-			ImGui::Checkbox("Show basis", &bd_show_basis);
+  		ImGui::Checkbox("Show mesh debugger", &md_show_mesh_debugger);
+			ImGui::Separator();
+
+      ImGui::Checkbox("Show basis", &bd_show_basis);
 			if (bd_show_basis) {
 				ImGui::SliderFloat("Basis thickness scale", &bd_thickness, 0.0f, 100.0f);
 				ImGui::SliderFloat("Basis length scale", &bd_length, 0.0f, 100.0f);

@@ -1,5 +1,6 @@
 #include "main.hpp"
 #include "TerrainGrid.h"
+#include "TerrainMesh.h"
 #include "ConfigWindow.h"
 #include "SculptingRaycaster.h"
 #include "Crosshair.h"
@@ -19,6 +20,7 @@
 #include <clocale>
 #include <cstdlib>
 #include <stdexcept>
+#include "DebugPointsRenderer.h"
 
 
 Project::ProjectWrapper::ProjectWrapper(WindowManager& windowManager) :
@@ -46,7 +48,7 @@ void
 Project::ProjectWrapper::run()
 {
 	// Set up the camera
-	mCamera.mWorld.SetTranslate(glm::vec3(0.0f, 1.0f, 9.0f));
+	mCamera.mWorld.SetTranslate(glm::vec3(25.0f, 40.0f, 25.0f));
 	mCamera.mMouseSensitivity = glm::vec2(0.003f);
 	mCamera.mMovementSpeed = glm::vec3(3.0f); // 3 m/s => 10.8 km/h
 
@@ -55,7 +57,7 @@ Project::ProjectWrapper::run()
 	// Load the shader used for rendering the debug points
 	GLuint debug_point_shader = 0u;
 	shader_manager.CreateAndRegisterProgram(
-		"debugpoint_shader",
+		"debug_point_shader",
 		{ { ShaderType::vertex,   "common/DebugPointShader.vert" },
 		  { ShaderType::fragment, "common/DebugPointShader.frag" } },
 		debug_point_shader
@@ -89,10 +91,26 @@ Project::ProjectWrapper::run()
 
 	shader_manager.ReloadAllPrograms();
 
-	// Create the TerrainGrid (Which is the 3d Voxel grid representing the terrain)
-	TerrainGrid* grid = new TerrainGrid(glm::ivec3(10), 1.0f);
+	// Load the shader used for rendering the debug mesh
+	GLuint debug_mesh_shader = 0u;
+	shader_manager.CreateAndRegisterProgram(
+		"debug_mesh_shader",
+		{ { ShaderType::vertex,   "common/DebugMeshShader.vert" },
+		  { ShaderType::fragment, "common/DebugMeshShader.frag" } },
+		debug_mesh_shader
+	);
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
+	if (debug_mesh_shader == 0u)
+		throw std::runtime_error("Failed to load debug_mesh_shader");
+	shader_manager.ReloadAllPrograms();
+
+	// Create the TerrainGrid, density field and TerrainMesh
+	TerrainGrid* grid = new TerrainGrid(glm::ivec3(50), 1.0f);
+	TerrainMesh* mesh = new TerrainMesh(grid);
+	DebugPointsRenderer* debugPoints = new DebugPointsRenderer(grid);
+
+	glClearDepthf(1.0f);
+	glClearColor(0.3, 0.3f, 0.8f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
 
 	auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -102,14 +120,13 @@ Project::ProjectWrapper::run()
 	std::int32_t program_index = 0;
 
 	// Create the Config, which is used to manage the Scene Controls window
-	Config* config = new Config(grid);
+	Config* config = new Config(grid, debugPoints);
 	// Create the Sculpting Raycaster, which is used to cast sculpting rays
 	SculptingRaycaster* sculpter = new SculptingRaycaster(grid);
 	glm::ivec2 windowSize;
 
 	Crosshair* crosshair = new Crosshair();
 	glfwGetWindowSize(window, &windowSize.x, &windowSize.y);
-
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -160,7 +177,7 @@ Project::ProjectWrapper::run()
 
 		// Clear the previous frame from the buffer
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
+		glEnable(GL_DEPTH_TEST);
 		//
 		// START RENDERING THE FRAME
 		//
@@ -168,9 +185,13 @@ Project::ProjectWrapper::run()
 		// Get the projection matrix
 		glm::mat4 projection = mCamera.GetWorldToClipMatrix();
 
+		if (config->md_show_mesh_debugger) {
+			mesh->draw(&mCamera, debug_mesh_shader);
+		}
+    
 		// Render the debug points
 		if (config->pd_show_points_debugger) {
-			grid->drawDebugPoints(&mCamera, debug_point_shader, config->pd_point_size);
+			debugPoints->draw(&mCamera, debug_point_shader, config->pd_point_size);
 		}
 		if (config->show_sculpting_rays) {
 			sculpter->drawRays(&mCamera, simple_shader);
