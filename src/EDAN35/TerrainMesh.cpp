@@ -328,14 +328,20 @@ glm::vec3 TerrainMesh::vertexInterpolation(glm::vec3& p1, glm::vec3& p2, float v
 };
 
 
-void TerrainMesh::draw(FPSCameraf* camera, GLuint shader) {
+void TerrainMesh::draw(FPSCameraf* camera, GLuint shader, float max_y) {
 	if (vao == 0) {
 		updateVBO();
 	}
 
+    auto light_direction = glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f));
+
 	glUseProgram(shader); // Use the mesh shader
 	// Provide the projection matrix to the shader
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(camera->GetWorldToClipMatrix()));
+    glUniform3fv(glGetUniformLocation(shader, "light_direction"), 1, glm::value_ptr(light_direction));
+    glUniform3fv(glGetUniformLocation(shader, "camera_position"), 1, glm::value_ptr(camera->mWorld.GetTranslation()));
+	glUniform1fv(glGetUniformLocation(shader, "max_y"), 1, &max_y);
+
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	glBindVertexArray(0); //Unbind the VBO and shader to prevent accidental use in the next draw()
@@ -455,10 +461,18 @@ void TerrainMesh::updateVBO() {
 					glm::vec3 v2 = cube.intersections[triTable[cubeIndex][i + 1]] * grid->get_scale();
 					glm::vec3 v3 = cube.intersections[triTable[cubeIndex][i + 2]] * grid->get_scale();
 
+                    // calculate normal 
+                    glm::vec3 n = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+
 					// Push into vertex buffer
 					points.push_back(v1.x); points.push_back(v1.y); points.push_back(v1.z);
+                    points.push_back(n.x); points.push_back(n.y); points.push_back(n.z);
+
 					points.push_back(v2.x); points.push_back(v2.y); points.push_back(v2.z);
+                    points.push_back(n.x); points.push_back(n.y); points.push_back(n.z);
+
 					points.push_back(v3.x); points.push_back(v3.y); points.push_back(v3.z);
+                    points.push_back(n.x); points.push_back(n.y); points.push_back(n.z);
 
 				}
 			}
@@ -467,7 +481,7 @@ void TerrainMesh::updateVBO() {
 
 	vertexCount = points.size() / 3;
 
-	// Generate the VAO and VBO
+     // Generate the VAO and VBO
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
 
@@ -477,10 +491,16 @@ void TerrainMesh::updateVBO() {
 	// Add the data to the buffers
 	glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(float), points.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // the world position data (at pos=0) needs 3 floats of data
-	glEnableVertexAttribArray(0); // Enable position at pos=0
+    // position at layout = 0
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+    // normal at layout = 1
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// Unbind the buffers (so that the next code doesn't accidentically override it)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
 }

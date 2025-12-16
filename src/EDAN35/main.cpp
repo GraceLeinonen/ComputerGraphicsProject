@@ -92,16 +92,17 @@ Project::ProjectWrapper::run()
 	shader_manager.ReloadAllPrograms();
 
 	// Load the shader used for rendering the debug mesh
-	GLuint debug_mesh_shader = 0u;
+	//! Updated to be triplanar
+	GLuint triplanar_shader = 0u;
 	shader_manager.CreateAndRegisterProgram(
-		"debug_mesh_shader",
-		{ { ShaderType::vertex,   "common/DebugMeshShader.vert" },
-		  { ShaderType::fragment, "common/DebugMeshShader.frag" } },
-		debug_mesh_shader
+		"triplanar_shader",
+		{ { ShaderType::vertex,   "common/Triplanar.vert" },
+		  { ShaderType::fragment, "common/Triplanar.frag" } },
+		triplanar_shader
 	);
 
-	if (debug_mesh_shader == 0u)
-		throw std::runtime_error("Failed to load debug_mesh_shader");
+	if (triplanar_shader == 0u)
+		throw std::runtime_error("Failed to load triplanar_shader");
 	shader_manager.ReloadAllPrograms();
 
 	// Create the TerrainGrid, density field and TerrainMesh
@@ -110,7 +111,7 @@ Project::ProjectWrapper::run()
 	DebugPointsRenderer* debugPoints = new DebugPointsRenderer(grid);
 
 	glClearDepthf(1.0f);
-	glClearColor(0.3, 0.3f, 0.8f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
+	glClearColor(0.79, 0.91f, 0.96f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
 
 	auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -186,7 +187,7 @@ Project::ProjectWrapper::run()
 		glm::mat4 projection = mCamera.GetWorldToClipMatrix();
 
 		if (config->md_show_mesh_debugger) {
-			mesh->draw(&mCamera, debug_mesh_shader);
+			mesh->draw(&mCamera, triplanar_shader, grid->get_y_size() * grid->get_scale());
 		}
     
 		// Render the debug points
