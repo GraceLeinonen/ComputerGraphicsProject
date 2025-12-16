@@ -60,12 +60,22 @@ int TerrainGrid::get_total_size() const {
 	return get_x_size() * get_y_size() * get_z_size();
 }
 
+float TerrainGrid::get_maxY() const {
+	return maxY;
+}
+
 void TerrainGrid::set_scale(float newScale) {
 	if (scale == newScale) return;
 	scale = newScale;
 
 	// Since the scale changed, we now have to regenerate the VBO
 	updatedTerrain();
+}
+
+void TerrainGrid::set_maxY(float newMaxY) {
+	if (maxY == newMaxY) return;
+	maxY = newMaxY;
+
 }
 
 PerlinNoise TerrainGrid::getNoise() const {
@@ -126,6 +136,12 @@ void TerrainGrid::regenerate(PerlinNoise newNoise) {
 			float noise_height = noise.sampleNoise(x, z); // Sample the height between 0-1 at this position
 			noise_height = floor(noise_height * dim.y); // Scale it by our max Y height and floor this
 			// Set the voxels to true as long as they are below or equal to this noise height
+			
+			if (noise_height > maxY) {
+
+				maxY = noise_height;
+			}
+
 			for (int y = 0; y < dim.y; y++) {
 				if (y <= noise_height) {
 					set(glm::vec3(x, y, z), true);

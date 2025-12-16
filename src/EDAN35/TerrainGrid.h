@@ -33,6 +33,9 @@ public:
 	float get_scale() const;
 	void set_scale(float newScale);
 
+	float get_maxY() const;
+	void set_maxY(float newMaxY);
+
 	PerlinNoise getNoise() const;
 
 private:
@@ -50,4 +53,5 @@ private:
 	float scale;
 	std::vector<uint8_t> grid;
 	PerlinNoise noise;
+	float maxY;
 };

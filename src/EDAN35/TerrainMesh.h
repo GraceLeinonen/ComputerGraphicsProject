@@ -9,7 +9,7 @@ class TerrainMesh {
 public:
 	TerrainMesh(TerrainGrid* grid);
 
-	void draw(FPSCameraf* camera, GLuint shader);
+	void draw(FPSCameraf* camera, GLuint shader, float max_y);
 
 private:
 	GLuint vbo, vao;
