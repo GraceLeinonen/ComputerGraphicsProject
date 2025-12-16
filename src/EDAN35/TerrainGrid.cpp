@@ -4,7 +4,7 @@
 
 TerrainGrid::TerrainGrid(glm::ivec3 dimensions, float scale)
 	: dim(dimensions), grid(dimensions.x * dimensions.y * dimensions.z, false),
-	scale(scale), noise(PerlinNoise(0, 0.1f)), debug_point_count(dimensions.x * dimensions.y * dimensions.z), // Set the x, y and z sizes, and initiallise the grid to all empty values
+	scale(scale), noise(PerlinNoise(0, 0.05f)), debug_point_count(dimensions.x * dimensions.y * dimensions.z), // Set the x, y and z sizes, and initiallise the grid to all empty values
 	debug_points_vao(0), debug_points_vbo(0), debugPointsRangeMax(scale), debugPointsRangeMin(glm::vec3(0))
 {
 	regenerate(noise); // Generate the terrain immediately with the current noise function

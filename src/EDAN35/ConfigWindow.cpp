@@ -23,7 +23,7 @@ Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer) {
 	pd_single_slice_axis = 0; // 0 = x, 1 = y, 2 = z
 	pd_single_slice = terrain_dimensions.y / 2; // Default to the middle slice
 
-	md_show_mesh_debugger = false; // md_ = mesh_debugger_
+	md_show_mesh_debugger = true; // md_ = mesh_debugger_
 	show_sculpting_rays = false;
 	crosshair_size = 4.0f;
 	show_crosshair = true;

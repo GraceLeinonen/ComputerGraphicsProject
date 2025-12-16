@@ -48,7 +48,7 @@ void
 Project::ProjectWrapper::run()
 {
 	// Set up the camera
-	mCamera.mWorld.SetTranslate(glm::vec3(0.0f, 1.0f, 9.0f));
+	mCamera.mWorld.SetTranslate(glm::vec3(25.0f, 40.0f, 25.0f));
 	mCamera.mMouseSensitivity = glm::vec2(0.003f);
 	mCamera.mMovementSpeed = glm::vec3(3.0f); // 3 m/s => 10.8 km/h
 
