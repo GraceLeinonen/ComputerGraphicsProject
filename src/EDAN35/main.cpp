@@ -52,10 +52,9 @@ Project::ProjectWrapper::run()
 	mCamera.mMouseSensitivity = glm::vec2(0.003f);
 	mCamera.mMovementSpeed = glm::vec3(3.0f); // 3 m/s => 10.8 km/h
 
+	// Load all the different shaders
 	ShaderProgramManager shader_manager;
-
-	// Load the shader used for rendering the debug points
-	GLuint debug_point_shader = 0u;
+	GLuint debug_point_shader = 0u; // Shader for the debug points option
 	shader_manager.CreateAndRegisterProgram(
 		"debug_point_shader",
 		{ { ShaderType::vertex,   "common/DebugPointShader.vert" },
@@ -66,7 +65,7 @@ Project::ProjectWrapper::run()
 	if (debug_point_shader == 0u)
 		throw std::runtime_error("Failed to load debug_point_shader");
 
-	GLuint simple_shader = 0u;
+	GLuint simple_shader = 0u; // Simple shader that takes in 3 position and 3 colour floats, used for the debug of the sculpting rays
 	shader_manager.CreateAndRegisterProgram(
 		"simple_shader",
 		{ { ShaderType::vertex,   "common/simple.vert" },
@@ -77,7 +76,7 @@ Project::ProjectWrapper::run()
 	if (simple_shader == 0u)
 		throw std::runtime_error("Failed to load debug_point_shader");
 
-	GLuint screenspace_shader = 0u;
+	GLuint screenspace_shader = 0u; // Shader that renders in screenspace, used for the crosshair
 	shader_manager.CreateAndRegisterProgram(
 		"screenspace_shader",
 		{ { ShaderType::vertex,   "common/screen.vert" },
@@ -88,12 +87,7 @@ Project::ProjectWrapper::run()
 	if (screenspace_shader == 0u)
 		throw std::runtime_error("Failed to load debug_point_shader");
 
-
-	shader_manager.ReloadAllPrograms();
-
-	// Load the shader used for rendering the debug mesh
-	//! Updated to be triplanar
-	GLuint triplanar_shader = 0u;
+	GLuint triplanar_shader = 0u; // Shader that renders the main terrain mesh
 	shader_manager.CreateAndRegisterProgram(
 		"triplanar_shader",
 		{ { ShaderType::vertex,   "common/Triplanar.vert" },
@@ -103,9 +97,10 @@ Project::ProjectWrapper::run()
 
 	if (triplanar_shader == 0u)
 		throw std::runtime_error("Failed to load triplanar_shader");
+
 	shader_manager.ReloadAllPrograms();
 
-	// Create the TerrainGrid, density field and TerrainMesh
+	// Create the TerrainGrid, and its renderers: TerrainMesh and DebugPointsRenderer
 	TerrainGrid* grid = new TerrainGrid(glm::ivec3(50), 1.0f);
 	TerrainMesh* mesh = new TerrainMesh(grid);
 	DebugPointsRenderer* debugPoints = new DebugPointsRenderer(grid);
@@ -124,10 +119,8 @@ Project::ProjectWrapper::run()
 	Config* config = new Config(grid, debugPoints);
 	// Create the Sculpting Raycaster, which is used to cast sculpting rays
 	SculptingRaycaster* sculpter = new SculptingRaycaster(grid);
-	glm::ivec2 windowSize;
-
+	// Create the Crosshair object to render the crosshair
 	Crosshair* crosshair = new Crosshair();
-	glfwGetWindowSize(window, &windowSize.x, &windowSize.y);
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -179,34 +172,36 @@ Project::ProjectWrapper::run()
 		// Clear the previous frame from the buffer
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 		//
 		// START RENDERING THE FRAME
 		//
 
-		// Get the projection matrix
-		glm::mat4 projection = mCamera.GetWorldToClipMatrix();
-
-		if (config->md_show_mesh_debugger) {
-			mesh->draw(&mCamera, triplanar_shader, grid->get_y_size() * grid->get_scale());
+		// Render the main terrain mesh (if enabled)
+		if (config->md_show_terrain_mesh) {
+													// Give the mesh the max Y, so that it can interpolate the colours correctly.
+			mesh->draw(&mCamera, triplanar_shader, grid->getDimensions().y * grid->getScale());
 		}
     
-		// Render the debug points
+		// Render the debug points (if enabled)
 		if (config->pd_show_points_debugger) {
 			debugPoints->draw(&mCamera, debug_point_shader, config->pd_point_size);
 		}
+		// Show the last sculpting ray (if enabled)
 		if (config->show_sculpting_rays) {
 			sculpter->drawRays(&mCamera, simple_shader);
 		}
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		// Render the basis (if enabled)
 		if (config->bd_show_basis)
 			bonobo::renderBasis(config->bd_thickness, config->bd_length, mCamera.GetWorldToClipMatrix());
+
 		// Render the logs window (if enabled)
 		if (show_logs)
 			Log::View::Render();
 
+		// On top of everything, render the crosshair (if enabled)
 		if (config->show_crosshair) {
 			crosshair->setSize(config->crosshair_size);
 			crosshair->draw(screenspace_shader);

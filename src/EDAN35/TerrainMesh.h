@@ -5,6 +5,9 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+
+/// Renderer class that generates and draws the marching cubes mesh for a given TerrainGrid.
+/// 
 class TerrainMesh {
 public:
 	TerrainMesh(TerrainGrid* grid);

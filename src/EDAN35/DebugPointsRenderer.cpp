@@ -6,6 +6,8 @@ DebugPointsRenderer::DebugPointsRenderer(TerrainGrid* grid) {
 	this->grid = grid;
 	this->vertexCount = 0;
 
+	// Register with the grid to get notified about grid changes
+	// This means updateVBO() will be called any time the grid changes
 	grid->registerUpdateCallback([this]() { this->updateVBO(); });
 	updateVBO();
 };
@@ -36,8 +38,8 @@ void DebugPointsRenderer::setDebugPointsRange(glm::ivec3 minIndexes, glm::ivec3 
 		glm::ivec3 max = glm::max(minIndexes, maxIndexes);
 
 		// Clamp the min and max to legal values
-		min = glm::clamp(min, glm::ivec3(0), grid->get_dimensions());
-		max = glm::clamp(max, glm::ivec3(0), grid->get_dimensions());
+		min = glm::clamp(min, glm::ivec3(0), grid->getDimensions());
+		max = glm::clamp(max, glm::ivec3(0), grid->getDimensions());
 		int count = (max.x - min.x) * (max.y - min.y) * (max.z - min.z);
 
 		if (min == minRange && max == maxRange && count == vertexCount) {
@@ -75,9 +77,9 @@ void DebugPointsRenderer::updateVBO() {
 	for (int x = minRange.x; x < maxRange.x; x++)
 		for (int y = minRange.y; y < maxRange.y; y++)
 			for (int z = minRange.z; z < maxRange.z; z++) {
-				points.push_back((float)x * grid->get_scale());
-				points.push_back((float)y * grid->get_scale());
-				points.push_back((float)z * grid->get_scale());
+				points.push_back((float)x * grid->getScale());
+				points.push_back((float)y * grid->getScale());
+				points.push_back((float)z * grid->getScale());
 				if (grid->get(glm::ivec3(x, y, z))) {
 					points.push_back(1.0f); // 0x1 colour flag to indicate a terrain voxel
 				}

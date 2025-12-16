@@ -2,6 +2,9 @@
 
 #include <vector>
 
+/// This class represents Perlin Noise with a certain scale and seed.
+/// This class can be used to sample noise at any point x, z, which first get scaled by the set scale factor.
+///
 class PerlinNoise {
 public:
 	PerlinNoise(int seed, float scale);

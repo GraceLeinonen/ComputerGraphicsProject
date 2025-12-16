@@ -12,8 +12,8 @@ Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer) {
 
 	// Initialize the default values
 	// Get the current values of the terrain
-	terrain_dimensions = grid->get_dimensions();
-	terrain_scale = grid->get_scale();
+	terrain_dimensions = grid->getDimensions();
+	terrain_scale = grid->getScale();
 
 	sculpter_size = 3.0f;
 
@@ -23,7 +23,7 @@ Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer) {
 	pd_single_slice_axis = 0; // 0 = x, 1 = y, 2 = z
 	pd_single_slice = terrain_dimensions.y / 2; // Default to the middle slice
 
-	md_show_mesh_debugger = true; // md_ = mesh_debugger_
+	md_show_terrain_mesh = true; // md_ = mesh_debugger_
 	show_sculpting_rays = false;
 	crosshair_size = 4.0f;
 	show_crosshair = true;
@@ -50,7 +50,7 @@ void Config::draw_config() {
 		}
 
 		if (ImGui::SliderFloat("Terrain Scale", &terrain_scale, 0.0f, 10.0f)) {
-			terrain->set_scale(terrain_scale);
+			terrain->setScale(terrain_scale);
 		}
 
 		if (ImGui::Button("Clear Terrain")) {
@@ -67,7 +67,7 @@ void Config::draw_config() {
 
 		// Add UI to change the seed and scale
 		ImGui::InputInt("Perlin Noise Seed", &pn_seed);
-		if (ImGui::SliderFloat("Perlin Noise Scale", &pn_scale, 0.01f, 1.0f)) {
+		if (ImGui::SliderFloat("Perlin Noise Scale", &pn_scale, 0.001f, 0.1f)) {
 			terrain->regenerate(PerlinNoise(pn_seed, pn_scale));
 		}
 
@@ -119,11 +119,11 @@ void Config::draw_config() {
 
           ImGui::SliderInt("Slice index", &pd_single_slice, 0, max_slice);
 				} else {
-					debugPointRenderer->setDebugPointsRange(glm::vec3(0), terrain->get_dimensions());
+					debugPointRenderer->setDebugPointsRange(glm::vec3(0), terrain->getDimensions());
 				}
 			}
 			ImGui::Separator();
-  		ImGui::Checkbox("Show mesh debugger", &md_show_mesh_debugger);
+  		ImGui::Checkbox("Show mesh debugger", &md_show_terrain_mesh);
 			ImGui::Separator();
 
       ImGui::Checkbox("Show basis", &bd_show_basis);
@@ -143,13 +143,13 @@ std::pair<glm::ivec3, glm::ivec3> Config::pointsDebuggerRange() const {
 		int minY = (pd_single_slice_axis == 1) ? pd_single_slice : 0;
 		int minZ = (pd_single_slice_axis == 2) ? pd_single_slice : 0;
 
-		int maxX = (pd_single_slice_axis == 0) ? pd_single_slice + 1 : terrain->get_x_size();
-		int maxY = (pd_single_slice_axis == 1) ? pd_single_slice + 1 : terrain->get_y_size();
-		int maxZ = (pd_single_slice_axis == 2) ? pd_single_slice + 1 : terrain->get_z_size();
+		int maxX = (pd_single_slice_axis == 0) ? pd_single_slice + 1 : terrain->getDimensions().x;
+		int maxY = (pd_single_slice_axis == 1) ? pd_single_slice + 1 : terrain->getDimensions().y;
+		int maxZ = (pd_single_slice_axis == 2) ? pd_single_slice + 1 : terrain->getDimensions().z;
 
 		return { glm::ivec3(minX, minY, minZ), glm::ivec3(maxX, maxY, maxZ) };
 	}
 	else {
-		return { glm::ivec3(0, 0, 0), terrain->get_dimensions() };
+		return { glm::ivec3(0, 0, 0), terrain->getDimensions() };
 	}
 }
