@@ -1,11 +1,11 @@
 #pragma once
 
 #include "PerlinNoise.h"
-
 #include <vector>
 #include <glm/vec3.hpp>
 #include <glad/glad.h>
 #include "core/FPSCamera.h"
+#include <functional>
 
 // The Terrain grid represents the terrain as a 3d grid of booleans (basically voxels)
 // indicating if they are inside or outside of the terrain
@@ -22,10 +22,7 @@ public:
 	void clear(); // Clears the grid to air, except for the bottom layer which is solid ground
 	void sculpt(glm::ivec3 center, float size, bool destructive);
 
-	void drawDebugPoints(FPSCameraf* camera, GLuint shader, float pointSize); // Draws the grid as points for debugging purposes
-	void setDebugPointsRange(glm::ivec3 minIndexes, glm::ivec3 maxIndexes); // Sets a range of indices to draw when using DebugPoints
-  
-  std::vector<std::vector<std::vector<float>>> density; //! move to private!
+	void registerUpdateCallback(std::function<void()> callback); // Registers a callback to be called whenever the grid is updated
 
 	int get_x_size() const;
 	int get_y_size() const;
@@ -37,11 +34,12 @@ public:
 	void set_scale(float newScale);
 
 	PerlinNoise getNoise() const;
-	void generateDensity();
 
 private:
+	void updatedTerrain();
 	int getIndex(glm::ivec3 p) const;
-	void regenerateVBO();
+
+	std::vector<std::function<void()>> updateCallbacks;
 
 	glm::ivec3 debugPointsRangeMin, debugPointsRangeMax;
 

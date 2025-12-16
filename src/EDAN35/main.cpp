@@ -20,6 +20,7 @@
 #include <clocale>
 #include <cstdlib>
 #include <stdexcept>
+#include "DebugPointsRenderer.h"
 
 
 Project::ProjectWrapper::ProjectWrapper(WindowManager& windowManager) :
@@ -105,18 +106,11 @@ Project::ProjectWrapper::run()
 
 	// Create the TerrainGrid, density field and TerrainMesh
 	TerrainGrid* grid = new TerrainGrid(glm::ivec3(50), 1.0f);
-	grid->generateDensity();
-	TerrainMesh* mesh = new TerrainMesh(*grid, 0.5f);
+	TerrainMesh* mesh = new TerrainMesh(grid);
+	DebugPointsRenderer* debugPoints = new DebugPointsRenderer(grid);
 
-	//
-	// Create the Debug Mesh VBO/VAO
-	//
-	std::pair<GLuint, GLuint> debug_mesh = mesh->generateMeshVBO();
-	GLuint debug_mesh_vao = debug_mesh.first;
-	GLuint debug_mesh_vbo = debug_mesh.second;
-
-
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
+	glClearDepthf(1.0f);
+	glClearColor(0.3, 0.3f, 0.8f, 1.0f); // Change the clear colour to make it a bit easier to see dark colours
 
 	auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -126,14 +120,13 @@ Project::ProjectWrapper::run()
 	std::int32_t program_index = 0;
 
 	// Create the Config, which is used to manage the Scene Controls window
-	Config* config = new Config(grid);
+	Config* config = new Config(grid, debugPoints);
 	// Create the Sculpting Raycaster, which is used to cast sculpting rays
 	SculptingRaycaster* sculpter = new SculptingRaycaster(grid);
 	glm::ivec2 windowSize;
 
 	Crosshair* crosshair = new Crosshair();
 	glfwGetWindowSize(window, &windowSize.x, &windowSize.y);
-
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -184,7 +177,7 @@ Project::ProjectWrapper::run()
 
 		// Clear the previous frame from the buffer
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
+		glEnable(GL_DEPTH_TEST);
 		//
 		// START RENDERING THE FRAME
 		//
@@ -192,22 +185,13 @@ Project::ProjectWrapper::run()
 		// Get the projection matrix
 		glm::mat4 projection = mCamera.GetWorldToClipMatrix();
 
-    // Render the debug mesh
 		if (config->md_show_mesh_debugger) {
-			glUseProgram(debug_mesh_shader); // Use the debug point shader
-			// Provide the projection matrix to the shader
-			glUniformMatrix4fv(glGetUniformLocation(debug_mesh_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-			glBindVertexArray(debug_mesh_vao);
-			glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
-			glBindVertexArray(0);
-			glUseProgram(0);
+			mesh->draw(&mCamera, debug_mesh_shader);
 		}
-
     
 		// Render the debug points
 		if (config->pd_show_points_debugger) {
-			grid->drawDebugPoints(&mCamera, debug_point_shader, config->pd_point_size);
+			debugPoints->draw(&mCamera, debug_point_shader, config->pd_point_size);
 		}
 		if (config->show_sculpting_rays) {
 			sculpter->drawRays(&mCamera, simple_shader);

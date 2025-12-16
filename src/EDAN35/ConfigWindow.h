@@ -3,6 +3,7 @@
 #include <glm/vec3.hpp>
 #include "TerrainGrid.h"
 #include "TerrainMesh.h"
+#include "DebugPointsRenderer.h"
 
 
 // The config is an object representation of the state of the Scene Controls window
@@ -10,7 +11,7 @@
 class Config {
 public:
 	Config() = delete; // No default constructor, we require a TerrainGrid to be provided
-	Config(TerrainGrid* terrain);
+	Config(TerrainGrid* terrain, DebugPointsRenderer* debugPointRenderer);
 	void draw_config();
 
 	glm::ivec3 terrain_dimensions; // The amount of voxels in the terrain grid
@@ -38,5 +39,5 @@ public:
 	float pn_scale;
 private:
 	TerrainGrid* terrain;
-	//!TerrainMesh* terrainMesh;
+	DebugPointsRenderer* debugPointRenderer;
 };

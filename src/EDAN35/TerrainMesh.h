@@ -7,25 +7,20 @@
 
 class TerrainMesh {
 public:
-TerrainMesh(TerrainGrid& grid, float isoLevel);
-~TerrainMesh();
+	TerrainMesh(TerrainGrid* grid);
 
-// Marching cube logic
-std::pair<GLuint, GLuint> generateMeshVBO();
-size_t getVertexCount();
-
-void setTerrainGrid(TerrainGrid& grid);
-void setisoLevel(float isoLevel);
+	void draw(FPSCameraf* camera, GLuint shader);
 
 private:
-TerrainGrid* grid;
-float isoLevel;
-size_t vertexCount;
+	GLuint vbo, vao;
+	void updateVBO();
 
-// Marching cube helpers
-static int edgeTable[256];
-static int triTable[256][16];
-glm::vec3 vertexInterpolation(glm::vec3& p1, glm::vec3& p2, float valp1, float valp2);
+	TerrainGrid* grid;
+	size_t vertexCount;
 
+	// Marching cube helpers
+	static int edgeTable[256];
+	static int triTable[256][16];
+	glm::vec3 vertexInterpolation(glm::vec3& p1, glm::vec3& p2, float valp1, float valp2);
 
 };

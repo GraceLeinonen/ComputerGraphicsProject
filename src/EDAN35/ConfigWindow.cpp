@@ -3,8 +3,10 @@
 #include <imgui.h>
 #include "core/Bonobo.h"
 
-Config::Config(TerrainGrid* grid) {
+Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer) {
 	terrain = grid;
+	this->debugPointRenderer = debugPointRenderer;
+
 	//!terrainMesh->setTerrainGrid(*grid);
 	//!terrainMesh->setisoLevel(0.0f);
 
@@ -97,7 +99,7 @@ void Config::draw_config() {
 				ImGui::Checkbox("Show only 1 slice", &pd_show_single_slice);
 
 				if (pd_show_single_slice) {
-					terrain->setDebugPointsRange(pointsDebuggerRange().first, pointsDebuggerRange().second);
+					debugPointRenderer->setDebugPointsRange(pointsDebuggerRange().first, pointsDebuggerRange().second);
 
 					if (ImGui::Button("X")) {
 						pd_single_slice_axis = 0;
@@ -117,7 +119,7 @@ void Config::draw_config() {
 
           ImGui::SliderInt("Slice index", &pd_single_slice, 0, max_slice);
 				} else {
-					terrain->setDebugPointsRange(glm::vec3(0), terrain->get_dimensions());
+					debugPointRenderer->setDebugPointsRange(glm::vec3(0), terrain->get_dimensions());
 				}
 			}
 			ImGui::Separator();
