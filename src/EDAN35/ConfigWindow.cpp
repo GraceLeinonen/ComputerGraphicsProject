@@ -3,11 +3,11 @@
 #include <imgui.h>
 #include "core/Bonobo.h"
 
-Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer) {
+Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer, TerrainMesh* mesh) {
 	terrain = grid;
 	this->debugPointRenderer = debugPointRenderer;
+	this->mesh = mesh;
 
-	//!terrainMesh->setTerrainGrid(*grid);
 	//!terrainMesh->setisoLevel(0.0f);
 
 	// Initialize the default values
@@ -16,6 +16,7 @@ Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer) {
 	terrain_scale = grid->getScale();
 
 	sculpter_size = 3.0f;
+	sculpter_strength = 0.1f;
 
 	pd_show_points_debugger = false; // pd_ = points_debugger_
 	pd_point_size = 20.0f;
@@ -24,6 +25,8 @@ Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer) {
 	pd_single_slice = terrain_dimensions.y / 2; // Default to the middle slice
 
 	md_show_terrain_mesh = true; // md_ = mesh_debugger_
+	md_iso_level = mesh->getIsoLevel();
+
 	show_sculpting_rays = false;
 	crosshair_size = 4.0f;
 	show_crosshair = true;
@@ -62,6 +65,7 @@ void Config::draw_config() {
 
 		ImGui::Text("Use Z/X to add/remove terrain at mouse position");
 		ImGui::SliderFloat("Sculpting Brush Size", &sculpter_size, 1.0f, 20.0f);
+		ImGui::SliderFloat("Sculpting Strength", &sculpter_strength, 0.01f, 1.0f);
 
 		ImGui::Separator();
 
@@ -122,9 +126,13 @@ void Config::draw_config() {
 					debugPointRenderer->setDebugPointsRange(glm::vec3(0), terrain->getDimensions());
 				}
 			}
-			ImGui::Separator();
+		ImGui::Separator();
   		ImGui::Checkbox("Show mesh debugger", &md_show_terrain_mesh);
-			ImGui::Separator();
+		if (&md_show_terrain_mesh) {
+			ImGui::SliderFloat("Iso Level", &md_iso_level, 0.001f, 1.0f);
+			mesh->setIsoLevel(md_iso_level);
+		}
+		ImGui::Separator();
 
       ImGui::Checkbox("Show basis", &bd_show_basis);
 			if (bd_show_basis) {

@@ -10,22 +10,28 @@ TerrainGrid::TerrainGrid(glm::ivec3 dimensions, float scale)
 	updatedTerrain();
 }
 
-bool TerrainGrid::get(glm::ivec3 p) const {
+float TerrainGrid::get(glm::ivec3 p) const {
 	if (p.x < 0 || p.x >= dim.x
 		|| p.y < 0 || p.y >= dim.y
 		|| p.z < 0 || p.z >= dim.z) {
 		// If the position is out of bounds, return false
-		return false;
+		return 0;
 	}
 	return grid[getIndex(p)];
 }
 
-void TerrainGrid::set(glm::ivec3 p, bool newValue) {
+void TerrainGrid::set(glm::ivec3 p, float newValue) {
 	if (p.x < 0 || p.x >= dim.x
 		|| p.y < 0 || p.y >= dim.y
 		|| p.z < 0 || p.z >= dim.z) {
 		// If the position is out of bounds, dont set it
 		return;
+	}
+	if (newValue < 0) {
+		newValue = 0;
+	}
+	if (newValue > 1) {
+		newValue = 1;
 	}
 
 	grid[getIndex(p)] = newValue;
@@ -71,18 +77,24 @@ void TerrainGrid::clear() {
 	updatedTerrain();
 }
 
-void TerrainGrid::sculpt(glm::ivec3 center, float size, bool destructive) {
-
+void TerrainGrid::sculpt(glm::ivec3 center, FPSCameraf* camera, float size, float strength, bool destructive) {
 	// Sculpt the terrain in a sphere around the hit:
-
-	// Loop through all coordinates that might be within the circle (size / 2 cube around the center)
-
 	float radiusSquared = size * size;
+	float centerDepth = glm::length(glm::vec3(center) - camera->mWorld.GetTranslation());
+	float offset = 0.001f; // Small offset to allow sculpting a bit behind the terrain
+
 	for (int x = center.x - size; x <= center.x + size; x++) {
 		for (int y = center.y - size; y <= center.y + size; y++) {
 			for (int z = center.z - size; z <= center.z + size; z++) {
 				if (glm::pow(x - center.x, 2) + glm::pow(y - center.y, 2) + glm::pow(z - center.z, 2) <= radiusSquared) {
-					set(glm::ivec3(x, y, z), !destructive);
+					float depth = glm::length(glm::vec3(x, y, z) - camera->mWorld.GetTranslation());
+
+					if (destructive && depth > centerDepth + offset) { // Only modify voxels that are closer to the camera than the target we hit
+						set(glm::ivec3(x, y, z), get(glm::ivec3(x, y, z)) - strength);
+					}
+					else if (!destructive && depth < centerDepth - offset) { // Only modify voxels that are further to the camera than the target we hit
+						set(glm::ivec3(x, y, z), get(glm::ivec3(x, y, z)) + strength);
+					}
 				}
 			}
 		}
@@ -115,10 +127,15 @@ void TerrainGrid::regenerate(PerlinNoise newNoise) {
 			// Set the voxels to true as long as they are below or equal to this noise height
 			for (int y = 0; y < dim.y; y++) {
 				if (y <= noise_height) {
-					set(glm::vec3(x, y, z), true);
+					if (y >= noise_height - 1) {
+						set(glm::vec3(x, y, z), noise_height - y);
+					}
+					else {
+						set(glm::vec3(x, y, z), 1);
+					}
 				}
 				else {
-					set(glm::vec3(x, y, z), false);
+					set(glm::vec3(x, y, z), 0);
 				}
 			}
 		}
@@ -129,11 +146,11 @@ void TerrainGrid::regenerate(PerlinNoise newNoise) {
 }
 
 void TerrainGrid::resize(glm::ivec3 newDimensions) {
-	std::vector<uint8_t> original = grid; // Copy the current grid
+	std::vector<float> original = grid; // Copy the current grid
 
 	glm::ivec3 oldDim = dim; // Save the old dimensions
 	dim = newDimensions; // Set the dimensions
-	grid = std::vector<uint8_t>(dim.x * dim.y * dim.z, false); // Actually create a grid the right size
+	grid = std::vector<float>(dim.x * dim.y * dim.z, false); // Actually create a grid the right size
 	regenerate(noise); // Use the regenerate to generate an entire grid based on the current noise pattern
 
 	// If Y changed, we can't keep the edited map since we would have to stretch/squash it along the y-axis

@@ -3,22 +3,34 @@
 #include <glm/gtc/type_ptr.hpp>
 
 struct Cube {
-
     glm::vec3 corners[8]; // position of cube corners
     float values[8]; // values at cube corners
     glm::vec3 intersections[12]; // intersection points on edge
 
 };
 
-TerrainMesh::TerrainMesh(TerrainGrid* grid) {
+TerrainMesh::TerrainMesh(TerrainGrid* grid)
+{
     this->grid = grid;
     this->vertexCount = 0;
+	this->isoLevel = 0.5;
 
 	// Register with the grid to get notified about grid changes
 	// This means updateVBO() will be called any time the grid changes
 	grid->registerUpdateCallback([this]() { this->updateVBO(); });
 	updateVBO();
 };
+
+void TerrainMesh::setIsoLevel(float iso) {
+	if (isoLevel == iso) return;
+
+	this->isoLevel = iso;
+	updateVBO();
+}
+
+float TerrainMesh::getIsoLevel() const {
+	return isoLevel;
+}
 
 int TerrainMesh::edgeTable[256] = {
 
@@ -319,14 +331,12 @@ int TerrainMesh::triTable[256][16] = {
 
 glm::vec3 TerrainMesh::vertexInterpolation(glm::vec3& p1, glm::vec3& p2, float valp1, float valp2) {
 
-    //if (fabs(isoLevel - valp1) < 0.00001f) return p1; // p1 is basically on isoLevel
-    //if (fabs(isoLevel - valp2) < 0.00001f) return p2; // p2 is basically on isoLevel
-    //if (fabs(valp1 - valp2) < 0.00001f) return p1; // p1 and p2 are basically at same level
+    if (fabs(isoLevel - valp1) < 0.00001f) return p1; // p1 is basically on isoLevel
+    if (fabs(isoLevel - valp2) < 0.00001f) return p2; // p2 is basically on isoLevel
+    if (fabs(valp1 - valp2) < 0.00001f) return p1; // p1 and p2 are basically at same level
 
-    //float t = (isoLevel - valp1) / (valp2 - valp1); // find t
-    //return p1 + (p2 - p1) * t; // get position
-
-	return 0.5f * (p1 + p2);
+    float t = (isoLevel - valp1) / (valp2 - valp1); // find t
+    return p1 + (p2 - p1) * t; // get position
 };
 
 
@@ -396,14 +406,14 @@ void TerrainMesh::updateVBO() {
 				//
 
 				int cubeIndex = 0; // binary: 00000000
-				if (cube.values[0] == 1) cubeIndex |= 1; // binary: 00000001 i.e. sets bit 1
-				if (cube.values[1] == 1) cubeIndex |= 2; // binary: 00000010 i.e. sets bit 2
-				if (cube.values[2] == 1) cubeIndex |= 4; // binary: 00000100 i.e. sets bit 3
-				if (cube.values[3] == 1) cubeIndex |= 8; // binary: 00001000 i.e. sets bit 4
-				if (cube.values[4] == 1) cubeIndex |= 16; // binary: 00010000 i.e. sets bit 5
-				if (cube.values[5] == 1) cubeIndex |= 32; // binary: 00100000 i.e. sets bit 6
-				if (cube.values[6] == 1) cubeIndex |= 64; // binary: 01000000 i.e. sets bit 7
-				if (cube.values[7] == 1) cubeIndex |= 128; // binary: 10000000 i.e. sets bit 8
+				if (cube.values[0] < isoLevel) cubeIndex |= 1; // binary: 00000001 i.e. sets bit 1
+				if (cube.values[1] < isoLevel) cubeIndex |= 2; // binary: 00000010 i.e. sets bit 2
+				if (cube.values[2] < isoLevel) cubeIndex |= 4; // binary: 00000100 i.e. sets bit 3
+				if (cube.values[3] < isoLevel) cubeIndex |= 8; // binary: 00001000 i.e. sets bit 4
+				if (cube.values[4] < isoLevel) cubeIndex |= 16; // binary: 00010000 i.e. sets bit 5
+				if (cube.values[5] < isoLevel) cubeIndex |= 32; // binary: 00100000 i.e. sets bit 6
+				if (cube.values[6] < isoLevel) cubeIndex |= 64; // binary: 01000000 i.e. sets bit 7
+				if (cube.values[7] < isoLevel) cubeIndex |= 128; // binary: 10000000 i.e. sets bit 8
 
 				//
 				// Edge table check

@@ -14,13 +14,13 @@ public:
 	TerrainGrid() = delete; // No default constructor, we require dimensions to be provided
 	TerrainGrid(glm::ivec3 dimensions, float scale);
 
-	bool get(glm::ivec3) const; // Gets the boolean value at X, Y, Z in the grid
-	void set(glm::ivec3, bool newValue); // Sets the boolean value at X, Y, Z in the grid
+	float get(glm::ivec3) const; // Gets the boolean value at X, Y, Z in the grid
+	void set(glm::ivec3, float newValue); // Sets the boolean value at X, Y, Z in the grid
 
 	void resize(glm::ivec3 newDimensions); // Resizes the grid to new dimensions, while keeping as much of the current contents as possible
 	void regenerate(PerlinNoise newNoise); // Regenerate the grid with new Perlin noise terrain
 	void clear(); // Clears the grid to air, except for the bottom layer which is solid ground
-	void sculpt(glm::ivec3 center, float size, bool destructive);
+	void sculpt(glm::ivec3 center, FPSCameraf* camera, float size, float strength, bool destructive);
 
 	void registerUpdateCallback(std::function<void()> callback); // Registers a callback to be called whenever the grid is updated
 
@@ -41,7 +41,7 @@ private:
 
 	glm::ivec3 dim; // The dimensions of the terrain grid
 	float scale;
-	std::vector<uint8_t> grid; // The actual underlying terrain data
+	std::vector<float> grid; // The actual underlying terrain data
 
 	PerlinNoise noise; // The PerlinNoise that should be used to generate more terrain
 };

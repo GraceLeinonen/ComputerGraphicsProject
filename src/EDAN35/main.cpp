@@ -116,7 +116,7 @@ Project::ProjectWrapper::run()
 	std::int32_t program_index = 0;
 
 	// Create the Config, which is used to manage the Scene Controls window
-	Config* config = new Config(grid, debugPoints);
+	Config* config = new Config(grid, debugPoints, mesh);
 	// Create the Sculpting Raycaster, which is used to cast sculpting rays
 	SculptingRaycaster* sculpter = new SculptingRaycaster(grid);
 	// Create the Crosshair object to render the crosshair
@@ -149,11 +149,11 @@ Project::ProjectWrapper::run()
 
 
 		// Get input for the sculpt terrain tool
-		if (inputHandler.GetKeycodeState(GLFW_KEY_Z) & JUST_PRESSED) {
-			sculpter->cast(&mCamera, false, config->sculpter_size);
+		if (inputHandler.GetKeycodeState(GLFW_KEY_Z) & PRESSED) {
+			sculpter->cast(&mCamera, false, config->sculpter_size, config->sculpter_strength);
 		}
-		if (inputHandler.GetKeycodeState(GLFW_KEY_X) & JUST_PRESSED) {
-			sculpter->cast(&mCamera, true, config->sculpter_size);
+		if (inputHandler.GetKeycodeState(GLFW_KEY_X) & PRESSED) {
+			sculpter->cast(&mCamera, true, config->sculpter_size, config->sculpter_strength);
 		}
 
 		// Retrieve the actual framebuffer size: for HiDPI monitors,
