@@ -17,7 +17,7 @@ public:
 	// Casts a sculpting ray from the camera position in the camera direction (where the crosshair is aiming)
 	// Returns TRUE if any terrain was hit.
 	// If destructive == true, terrain is removed, otherwise terrain is added. "size" is the radius of the brush
-	bool cast(FPSCameraf* camera,  bool desctructive, float size); 
+	bool cast(FPSCameraf* camera,  bool desctructive, float size, float strength); 
 
 	void drawRays(FPSCameraf* camera, GLuint shader); // Draws a debug line for the rays 
 

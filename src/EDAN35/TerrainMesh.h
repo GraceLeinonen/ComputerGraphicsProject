@@ -13,6 +13,8 @@ public:
 	TerrainMesh(TerrainGrid* grid);
 
 	void draw(FPSCameraf* camera, GLuint shader, float max_y);
+	void setIsoLevel(float iso);
+	float getIsoLevel() const;
 
 private:
 	GLuint vbo, vao;
@@ -20,6 +22,7 @@ private:
 
 	TerrainGrid* grid;
 	size_t vertexCount;
+	float isoLevel;
 
 	// Marching cube helpers
 	static int edgeTable[256];

@@ -11,13 +11,14 @@
 class Config {
 public:
 	Config() = delete; // No default constructor, we require a TerrainGrid to be provided
-	Config(TerrainGrid* terrain, DebugPointsRenderer* debugPointRenderer);
+	Config(TerrainGrid* terrain, DebugPointsRenderer* debugPointRenderer, TerrainMesh* mesh);
 	void draw_config();
 
 	glm::ivec3 terrain_dimensions; // The amount of voxels in the terrain grid
 	float terrain_scale; // The distance between each voxel in the terrain grid
 
 	float sculpter_size; // The size of the sculpting brush
+	float sculpter_strength; // The strength of the sculpting brush
 
 	bool pd_show_points_debugger; // pd_ = points_debugger_
 	float pd_point_size;
@@ -27,6 +28,8 @@ public:
 	std::pair<glm::ivec3, glm::ivec3> pointsDebuggerRange() const;
 
 	bool md_show_terrain_mesh; // md_ = mesh_debugger_
+	float md_iso_level;
+
 	bool show_sculpting_rays; // Toggle for showing sculpting debug rays
 	bool show_crosshair;
 	float crosshair_size;
@@ -40,4 +43,5 @@ public:
 private:
 	TerrainGrid* terrain;
 	DebugPointsRenderer* debugPointRenderer;
+	TerrainMesh* mesh;
 };

@@ -34,9 +34,8 @@ void main() {
     vec3 V = normalize(camera_position - fs_in.world_position);
     vec3 R = reflect(-L, N);
 
-    float diffuse = max(dot(N,-L), 0.0);
+    float diffuse = max(dot(N,L), 0.0);
     float specular = pow(max(dot(R,V), 0.0), 10.0);
 
-    FragColor = diffuse_color * diffuse + specular_color * specular;
-
+	FragColor = diffuse_color * diffuse + specular_color * specular;
 };

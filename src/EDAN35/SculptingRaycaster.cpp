@@ -8,7 +8,7 @@ SculptingRaycaster::SculptingRaycaster(TerrainGrid* terrain)
 	updateVBO(false, false, glm::vec3(0), glm::vec3(0));
 }
 
-bool SculptingRaycaster::cast(FPSCameraf* camera, bool desctructive, float size) {
+bool SculptingRaycaster::cast(FPSCameraf* camera, bool destructive, float size, float strength) {
 	// Construct the ray
 	glm::vec3 origin = camera->mWorld.GetTranslation(); // Get the camera position as origin
 	glm::vec3 direction = camera->mWorld.GetFront();
@@ -16,13 +16,19 @@ bool SculptingRaycaster::cast(FPSCameraf* camera, bool desctructive, float size)
 	// Cast the ray
 	bool hit = false;
 	glm::vec3 rayPos = origin / terrain->getScale(); // Divide by the scale to get to array-index space
-	for (int i = 0; i < 100000; i++) {
+	for (int i = 0; i < 1000; i++) {
 		// Check if the closest voxel to the ray is in the terrain
 		glm::vec3 closestVoxel = glm::round(rayPos);
 		// Check if the voxel is part of the TerrainGrid (if it is out of bound, the get() function returns false)
-		if (terrain->get(closestVoxel)) {
+		if (destructive && (terrain->get(closestVoxel) > 0)) {
 			// Sculpt the terrain
-			terrain->sculpt(closestVoxel, size, desctructive);
+			terrain->sculpt(closestVoxel, camera, size, strength, destructive);
+			hit = true;
+			break; // Break from the loop, as we have now sculpted the terrain
+		}
+		if (!destructive && (terrain->get(closestVoxel) > 0.5)) {
+			// Sculpt the terrain
+			terrain->sculpt(closestVoxel, camera, size, strength, destructive);
 			hit = true;
 			break; // Break from the loop, as we have now sculpted the terrain
 		}
@@ -31,7 +37,7 @@ bool SculptingRaycaster::cast(FPSCameraf* camera, bool desctructive, float size)
 	}
 
 	// Update the VBO for drawing the debug line
-	updateVBO(hit, desctructive, origin, rayPos * terrain->getScale());
+	updateVBO(hit, destructive, origin, rayPos * terrain->getScale());
 	return hit;
 }
 
