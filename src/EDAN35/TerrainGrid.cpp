@@ -92,7 +92,7 @@ void TerrainGrid::sculpt(glm::ivec3 center, FPSCameraf* camera, float size, floa
 					if (destructive && depth < centerDepth + offset) { // Only modify voxels that are closer to the camera than the target we hit
 						set(glm::ivec3(x, y, z), get(glm::ivec3(x, y, z)) - strength);
 					}
-					else if (!destructive && depth < centerDepth + offset) { // Only modify voxels that are further to the camera than the target we hit
+					else if (!destructive) { // Only modify voxels that are further to the camera than the target we hit
 						set(glm::ivec3(x, y, z), get(glm::ivec3(x, y, z)) + strength);
 					}
 				}

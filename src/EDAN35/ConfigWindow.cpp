@@ -15,8 +15,8 @@ Config::Config(TerrainGrid* grid, DebugPointsRenderer* debugPointRenderer, Terra
 	terrain_dimensions = grid->getDimensions();
 	terrain_scale = grid->getScale();
 
-	sculpter_size = 3.0f;
-	sculpter_strength = 0.1f;
+	sculpter_size = 10.0f;
+	sculpter_strength = 0.2f;
 
 	pd_show_points_debugger = false; // pd_ = points_debugger_
 	pd_point_size = 20.0f;
