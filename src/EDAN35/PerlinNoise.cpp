@@ -96,7 +96,6 @@ float PerlinNoise::sampleNoise(int x, int z) {
     float ix1 = lerp(grad(h00, xf0, zf0), grad(h10, xf1, zf0), u);
     float ix2 = lerp(grad(h01, xf0, zf1), grad(h11, xf1, zf1), u);
 
-
 	float sample = lerp(ix1, ix2, v);
     return (sample + 1) / 2; // Convert the sample to 0-1
 };

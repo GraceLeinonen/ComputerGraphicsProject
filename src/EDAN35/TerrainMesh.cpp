@@ -413,7 +413,7 @@ void TerrainMesh::updateVBO() {
 				}
 
 				// CASE 2: Cube intersects surface some where
-				glm::vec3 intersections[12];
+			
 
 				if (edgeTable[cubeIndex] & 1) // if true, isosurface intersects edge 0
 					cube.intersections[0] = vertexInterpolation(cube.corners[0], cube.corners[1], cube.values[0], cube.values[1]); // perform interpolation to find where exactly it interesects
