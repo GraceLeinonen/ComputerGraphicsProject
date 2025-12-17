@@ -26,7 +26,7 @@ bool SculptingRaycaster::cast(FPSCameraf* camera, bool destructive, float size, 
 			hit = true;
 			break; // Break from the loop, as we have now sculpted the terrain
 		}
-		if (!destructive && (terrain->get(closestVoxel) > 0.5)) {
+		if (!destructive && (terrain->get(closestVoxel) > 0.7)) {
 			// Sculpt the terrain
 			terrain->sculpt(closestVoxel, camera, size, strength, destructive);
 			hit = true;

@@ -81,7 +81,7 @@ void TerrainGrid::sculpt(glm::ivec3 center, FPSCameraf* camera, float size, floa
 	// Sculpt the terrain in a sphere around the hit:
 	float radiusSquared = size * size;
 	float centerDepth = glm::length(glm::vec3(center) - camera->mWorld.GetTranslation());
-	float offset = 0.001f; // Small offset to allow sculpting a bit behind the terrain
+	float offset = 0.4f; // Small offset to allow sculpting a bit behind the terrain
 
 	for (int x = center.x - size; x <= center.x + size; x++) {
 		for (int y = center.y - size; y <= center.y + size; y++) {
@@ -89,10 +89,10 @@ void TerrainGrid::sculpt(glm::ivec3 center, FPSCameraf* camera, float size, floa
 				if (glm::pow(x - center.x, 2) + glm::pow(y - center.y, 2) + glm::pow(z - center.z, 2) <= radiusSquared) {
 					float depth = glm::length(glm::vec3(x, y, z) - camera->mWorld.GetTranslation());
 
-					if (destructive && depth > centerDepth + offset) { // Only modify voxels that are closer to the camera than the target we hit
+					if (destructive && depth < centerDepth + offset) { // Only modify voxels that are closer to the camera than the target we hit
 						set(glm::ivec3(x, y, z), get(glm::ivec3(x, y, z)) - strength);
 					}
-					else if (!destructive && depth < centerDepth - offset) { // Only modify voxels that are further to the camera than the target we hit
+					else if (!destructive && depth < centerDepth + offset) { // Only modify voxels that are further to the camera than the target we hit
 						set(glm::ivec3(x, y, z), get(glm::ivec3(x, y, z)) + strength);
 					}
 				}
