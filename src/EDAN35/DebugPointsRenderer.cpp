@@ -80,12 +80,7 @@ void DebugPointsRenderer::updateVBO() {
 				points.push_back((float)x * grid->getScale());
 				points.push_back((float)y * grid->getScale());
 				points.push_back((float)z * grid->getScale());
-				if (grid->get(glm::ivec3(x, y, z))) {
-					points.push_back(1.0f); // 0x1 colour flag to indicate a terrain voxel
-				}
-				else {
-					points.push_back(0.0f); // 0x0 colour flag to indicate an empty voxel
-				}
+				points.push_back(grid->get(glm::ivec3(x, y, z))); // push the colour to the voxel
 			}
 
 	// Move the data to the VBO
