@@ -24,17 +24,12 @@ public:
 
 	void registerUpdateCallback(std::function<void()> callback); // Registers a callback to be called whenever the grid is updated
 
-	int get_x_size() const;
-	int get_y_size() const;
-	int get_z_size() const;
-	glm::ivec3 get_dimensions() const; // Gets all dimensions as a vec
-	int get_total_size() const;
+	glm::ivec3 getDimensions() const; // Gets all dimensions as a vec
+	int getTotalSize() const; // total amount of voxels = max_x * max_y * max_z
 
-	float get_scale() const;
-	void set_scale(float newScale);
-
-	float get_maxY() const;
-	void set_maxY(float newMaxY);
+	// The Scale factor is the VISUAL distance between voxels. The underlying calculations (such as sculpting raycasting) still happen at scale == 1.
+	float getScale() const;
+	void setScale(float newScale); 
 
 	PerlinNoise getNoise() const;
 
@@ -44,13 +39,9 @@ private:
 
 	std::vector<std::function<void()>> updateCallbacks;
 
-	glm::ivec3 debugPointsRangeMin, debugPointsRangeMax;
-
-	GLuint debug_points_vbo, debug_points_vao;
-	int debug_point_count;
-
 	glm::ivec3 dim; // The dimensions of the terrain grid
 	float scale;
-	std::vector<uint8_t> grid;
-	PerlinNoise noise;
+	std::vector<uint8_t> grid; // The actual underlying terrain data
+
+	PerlinNoise noise; // The PerlinNoise that should be used to generate more terrain
 };

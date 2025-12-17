@@ -26,7 +26,7 @@ public:
 	int pd_single_slice;
 	std::pair<glm::ivec3, glm::ivec3> pointsDebuggerRange() const;
 
-	bool md_show_mesh_debugger; // md_ = mesh_debugger_
+	bool md_show_terrain_mesh; // md_ = mesh_debugger_
 	bool show_sculpting_rays; // Toggle for showing sculpting debug rays
 	bool show_crosshair;
 	float crosshair_size;

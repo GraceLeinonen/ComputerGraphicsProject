@@ -14,6 +14,8 @@ TerrainMesh::TerrainMesh(TerrainGrid* grid) {
     this->grid = grid;
     this->vertexCount = 0;
 
+	// Register with the grid to get notified about grid changes
+	// This means updateVBO() will be called any time the grid changes
 	grid->registerUpdateCallback([this]() { this->updateVBO(); });
 	updateVBO();
 };
@@ -362,9 +364,9 @@ void TerrainMesh::updateVBO() {
 	//
 	// Generate mesh across entire density field
 	//
-	for (int x = 0; x < grid->get_dimensions().x - 1; ++x) {
-		for (int y = 0; y < grid->get_dimensions().y - 1; ++y) {
-			for (int z = 0; z < grid->get_dimensions().z - 1; ++z) {
+	for (int x = 0; x < grid->getDimensions().x - 1; ++x) {
+		for (int y = 0; y < grid->getDimensions().y - 1; ++y) {
+			for (int z = 0; z < grid->getDimensions().z - 1; ++z) {
 
 				//
 				// Create cube
@@ -457,9 +459,9 @@ void TerrainMesh::updateVBO() {
 				for (int i = 0; triTable[cubeIndex][i] != -1; i += 3) {
 
 					// Create vertices, scaled by the grid scale
-					glm::vec3 v1 = cube.intersections[triTable[cubeIndex][i]] * grid->get_scale();
-					glm::vec3 v2 = cube.intersections[triTable[cubeIndex][i + 1]] * grid->get_scale();
-					glm::vec3 v3 = cube.intersections[triTable[cubeIndex][i + 2]] * grid->get_scale();
+					glm::vec3 v1 = cube.intersections[triTable[cubeIndex][i]] * grid->getScale();
+					glm::vec3 v2 = cube.intersections[triTable[cubeIndex][i + 1]] * grid->getScale();
+					glm::vec3 v3 = cube.intersections[triTable[cubeIndex][i + 2]] * grid->getScale();
 
                     // calculate normal 
                     glm::vec3 n = glm::normalize(glm::cross(v2 - v1, v3 - v1));

@@ -4,17 +4,16 @@
 
 TerrainGrid::TerrainGrid(glm::ivec3 dimensions, float scale)
 	: dim(dimensions), grid(dimensions.x * dimensions.y * dimensions.z, false),
-	scale(scale), noise(PerlinNoise(0, 0.05f)), debug_point_count(dimensions.x * dimensions.y * dimensions.z), // Set the x, y and z sizes, and initiallise the grid to all empty values
-	debug_points_vao(0), debug_points_vbo(0), debugPointsRangeMax(scale), debugPointsRangeMin(glm::vec3(0))
+	scale(scale), noise(PerlinNoise(0, 0.05f))
 {
 	regenerate(noise); // Generate the terrain immediately with the current noise function
 	updatedTerrain();
 }
 
 bool TerrainGrid::get(glm::ivec3 p) const {
-	if (p.x < 0 || p.x >= get_x_size()
-		|| p.y < 0 || p.y >= get_y_size()
-		|| p.z < 0 || p.z >= get_z_size()) {
+	if (p.x < 0 || p.x >= dim.x
+		|| p.y < 0 || p.y >= dim.y
+		|| p.z < 0 || p.z >= dim.z) {
 		// If the position is out of bounds, return false
 		return false;
 	}
@@ -22,9 +21,9 @@ bool TerrainGrid::get(glm::ivec3 p) const {
 }
 
 void TerrainGrid::set(glm::ivec3 p, bool newValue) {
-	if (p.x < 0 || p.x >= get_x_size()
-		|| p.y < 0 || p.y >= get_y_size()
-		|| p.z < 0 || p.z >= get_z_size()) {
+	if (p.x < 0 || p.x >= dim.x
+		|| p.y < 0 || p.y >= dim.y
+		|| p.z < 0 || p.z >= dim.z) {
 		// If the position is out of bounds, dont set it
 		return;
 	}
@@ -36,31 +35,19 @@ int TerrainGrid::getIndex(glm::ivec3 p) const {
 	return p.x + p.y * dim.x + p.z * dim.x * dim.y;
 }
 
-int TerrainGrid::get_x_size() const {
-	return dim.x;
-}
-
-int TerrainGrid::get_y_size() const {
-	return dim.y;
-}
-
-int TerrainGrid::get_z_size() const {
-	return dim.z;
-}
-
-glm::ivec3 TerrainGrid::get_dimensions() const {
+glm::ivec3 TerrainGrid::getDimensions() const {
 	return dim;
 }
 
-float TerrainGrid::get_scale() const {
+float TerrainGrid::getScale() const {
 	return scale;
 }
 
-int TerrainGrid::get_total_size() const {
-	return get_x_size() * get_y_size() * get_z_size();
+int TerrainGrid::getTotalSize() const {
+	return dim.x * dim.y * dim.z;
 }
 
-void TerrainGrid::set_scale(float newScale) {
+void TerrainGrid::setScale(float newScale) {
 	if (scale == newScale) return;
 	scale = newScale;
 

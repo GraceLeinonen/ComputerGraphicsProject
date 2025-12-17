@@ -15,7 +15,7 @@ bool SculptingRaycaster::cast(FPSCameraf* camera, bool desctructive, float size)
 
 	// Cast the ray
 	bool hit = false;
-	glm::vec3 rayPos = origin / terrain->get_scale(); // Divide by the scale to get to array-index space
+	glm::vec3 rayPos = origin / terrain->getScale(); // Divide by the scale to get to array-index space
 	for (int i = 0; i < 100000; i++) {
 		// Check if the closest voxel to the ray is in the terrain
 		glm::vec3 closestVoxel = glm::round(rayPos);
@@ -31,8 +31,8 @@ bool SculptingRaycaster::cast(FPSCameraf* camera, bool desctructive, float size)
 	}
 
 	// Update the VBO for drawing the debug line
-	updateVBO(hit, desctructive, origin, rayPos * terrain->get_scale());
-	return true;
+	updateVBO(hit, desctructive, origin, rayPos * terrain->getScale());
+	return hit;
 }
 
 
@@ -93,8 +93,8 @@ void SculptingRaycaster::updateVBO(bool rayHit, bool rayDestructive, glm::vec3 s
 		colour = glm::vec3(0.1f, 0.1f, 1.0f); // Blue if no hit
 	}
 
-	glm::vec3 origin = scaledOrigin / terrain->get_scale();
-	glm::vec3 hitPoint = scaledHitPoint / terrain->get_scale();
+	glm::vec3 origin = scaledOrigin / terrain->getScale();
+	glm::vec3 hitPoint = scaledHitPoint / terrain->getScale();
 
 	// Add the point and colour data to a list
 	std::vector<float> vboData;

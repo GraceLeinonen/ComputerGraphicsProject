@@ -5,13 +5,18 @@
 #include "core/FPSCamera.h"
 #include <glm/vec3.hpp>
 
+
+///
+/// The SculptingRayCaster class allows for easily casting sculpting rays into a TerrainGrid.
+///
+/// 
 class SculptingRaycaster {
 public:
 	SculptingRaycaster() = delete;
 	SculptingRaycaster(TerrainGrid* terrain);
-	// Casts a sculpting ray from a mouse position. Returns true if terrain was hit.
-	// if destructive = true, terrain is removed, otherwise terrain is added
-	// size is the radius of the sculpting brush
+	// Casts a sculpting ray from the camera position in the camera direction (where the crosshair is aiming)
+	// Returns TRUE if any terrain was hit.
+	// If destructive == true, terrain is removed, otherwise terrain is added. "size" is the radius of the brush
 	bool cast(FPSCameraf* camera,  bool desctructive, float size); 
 
 	void drawRays(FPSCameraf* camera, GLuint shader); // Draws a debug line for the rays 
