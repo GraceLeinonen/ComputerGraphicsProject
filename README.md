@@ -40,3 +40,15 @@ In the app when pressing `Z/X` terrain will be added or removed where the camera
 
 This is done by creating a ray from the camera. The ray is moved the size of one voxel at a time, until the closest voxel to the ray is TRUE, which is where the ray adds or removes terrain.
 This approach is efficient because the ray only has to compare to one value per move. The rays can also be visualised using the "Show Sculpting Rays" option in the debug menu.
+
+## Unfinished Features
+
+### Textures
+On the `/textures` branch there is an unfinished implementation of adding basic textures to the terrain.
+In the end we found the textures did not look great and so we decided to go for a more simple shading approach, but we left the code in a seperate branch for future use.
+The code is currently not very optimized and might be slow. 
+
+### Interpolated Marching Cubes
+Currently in the `TerrainMesh` class there is a commented-out implementation for interpolated Marching Cubes.
+Currently the TerrainGrid can only set boolean values for every grid position, so the interpolation is not yet in use.
+A future version of this project could implement a float-based grid, which would greatly improve how smooth the terrain looks.
