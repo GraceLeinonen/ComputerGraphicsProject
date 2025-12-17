@@ -12,13 +12,11 @@ This app was made as the final project for the EDAN35 High-Performance Computer 
 ![Example of landscape generated with project](/readme/generated-landscape-example.jpg)
 
 ## Landscape Generator
-The landscape is based on a 3D grid of booleans, indicating if any place should be part of the terrain.
-Using this boolean the Marching Cubes algorithm is used to generate a mesh.
+The landscape is based on a 3D grid of floats, indicating if any place should be part of the terrain.
+Using this float the Marching Cubes algorithm is used to generate a mesh.
 This mesh can be sculpted in real time by the user. There are also some other options to modify the terrain, which can be found [here](#tools).
 
-> ⚠️ This project uses boolean marching cubes, not the traditional interpolated version. A future version could improve on this by changing the grid to store floats instead of booleans. Currently some of the interpolation is implemented, but it is unfinished, mainly because the sculpting and grid do not support it yet.
-
-
+> ⚠️ Originally we implemented the grid with booleans. The implementation with floats looks better, but has a few more bugs. The boolean implementation is available in the `boolean-marching-cubes` branch
 
 ## Tools
 The project has several tools, both for debugging and interacting with the terrain. These tools can all be accessed in the "Scene Controls" ImGUI menu.
@@ -35,10 +33,9 @@ Since it is hard to visualise an entire 3d grid using just dots, it is also poss
 ![An example of displaying a single slice in the points debugger](/readme/point-debugger-single-slice.jpg)
 
 ### Sculpting
-Because the landscape is based on a grid of booleans, it is relatively simple to implement a sculpting feature.
 In the app when pressing `Z/X` terrain will be added or removed where the camera is pointing.
 
-This is done by creating a ray from the camera. The ray is moved the size of one voxel at a time, until the closest voxel to the ray is TRUE, which is where the ray adds or removes terrain.
+This is done by creating a ray from the camera. The ray is moved the size of one voxel at a time, until the closest voxel to the ray is greater than 0 (for removing terrain), or 0.5 (for adding terrain), which is where the ray sculpts terrain.
 This approach is efficient because the ray only has to compare to one value per move. The rays can also be visualised using the "Show Sculpting Rays" option in the debug menu.
 
 ## Unfinished Features
@@ -47,8 +44,3 @@ This approach is efficient because the ray only has to compare to one value per 
 On the `/textures` branch there is an unfinished implementation of adding basic textures to the terrain.
 In the end we found the textures did not look great and so we decided to go for a more simple shading approach, but we left the code in a seperate branch for future use.
 The code is currently not very optimized and might be slow. 
-
-### Interpolated Marching Cubes
-Currently in the `TerrainMesh` class there is a commented-out implementation for interpolated Marching Cubes.
-Currently the TerrainGrid can only set boolean values for every grid position, so the interpolation is not yet in use.
-A future version of this project could implement a float-based grid, which would greatly improve how smooth the terrain looks.

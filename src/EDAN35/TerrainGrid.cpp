@@ -78,11 +78,7 @@ void TerrainGrid::clear() {
 }
 
 void TerrainGrid::sculpt(glm::ivec3 center, FPSCameraf* camera, float size, float strength, bool destructive) {
-
 	// Sculpt the terrain in a sphere around the hit:
-
-	// Loop through all coordinates that might be within the circle (size / 2 cube around the center)
-
 	float radiusSquared = size * size;
 	float centerDepth = glm::length(glm::vec3(center) - camera->mWorld.GetTranslation());
 	float offset = 0.001f; // Small offset to allow sculpting a bit behind the terrain
