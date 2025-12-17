@@ -1,5 +1,7 @@
 #include "TerrainMesh.h"
+#include "config.hpp"
 #include "core/Bonobo.h"
+#include "core/node.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 struct Cube {
@@ -333,14 +335,30 @@ void TerrainMesh::draw(FPSCameraf* camera, GLuint shader, float max_y) {
 		updateVBO();
 	}
 
+    // Light direction
     auto light_direction = glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f));
 
+    // Load textures
+	GLuint snow = bonobo::loadTexture2D(config::resources_path("textures/snow.png"), false);
+	GLuint grass = bonobo::loadTexture2D(config::resources_path("textures/grass.png"), false);
+
+
 	glUseProgram(shader); // Use the mesh shader
-	// Provide the projection matrix to the shader
+
+	// Provide the uniforms to the shader
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(camera->GetWorldToClipMatrix()));
     glUniform3fv(glGetUniformLocation(shader, "light_direction"), 1, glm::value_ptr(light_direction));
     glUniform3fv(glGetUniformLocation(shader, "camera_position"), 1, glm::value_ptr(camera->mWorld.GetTranslation()));
 	glUniform1fv(glGetUniformLocation(shader, "max_y"), 1, &max_y);
+
+    // Texture binding
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, snow);
+    glUniform1i(glGetUniformLocation(shader, "tex[0]"), 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, grass);
+    glUniform1i(glGetUniformLocation(shader, "tex[1]"), 1);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
