@@ -9,7 +9,7 @@ This app was made as the final project for the EDAN35 High-Performance Computer 
 
 ---
 
-![Example of landscape generated with project](/readme/generated-landscape-example.png)
+![Example of landscape generated with project](/readme/generated-landscape-example.jpg)
 
 ## Landscape Generator
 The landscape is based on a 3D grid of booleans, indicating if any place should be part of the terrain.
@@ -23,7 +23,7 @@ This mesh can be sculpted in real time by the user. There are also some other op
 ## Tools
 The project has several tools, both for debugging and interacting with the terrain. These tools can all be accessed in the "Scene Controls" ImGUI menu.
 Changing these options will be reflected in the app immediately. 
-![The Scene Controls menu displaying all tool options](/readme/scene-controls.png)
+![The Scene Controls menu displaying all tool options](/readme/scene-controls.jpg)
 
 ### Debugging
 In order to debug the 3d grid, a point debugger is added.
@@ -32,7 +32,7 @@ White indicates the voxel should be part of the terrain, and black indicates air
 
 Since it is hard to visualise an entire 3d grid using just dots, it is also possible to show only one X/Y/Z slice at a time, for which any direction and slice index can be chosen.
 
-![An example of displaying a single slice in the points debugger](/readme/point-debugger-single-slice.png)
+![An example of displaying a single slice in the points debugger](/readme/point-debugger-single-slice.jpg)
 
 ### Sculpting
 Because the landscape is based on a grid of booleans, it is relatively simple to implement a sculpting feature.
